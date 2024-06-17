@@ -4,3 +4,5 @@ who knows
 just compile or run the .exe and follow the instructions
 dont input and incorrect commands or numbers
 theres no error correction (i am lazy)
+
+all the stormdrive code ripped from you know where
