@@ -6,3 +6,5 @@ dont input and incorrect commands or numbers
 theres no error correction (i am lazy)
 
 all the stormdrive code ripped from you know where
+
+Likes to trigger windows defender, You can just read the source code within 10 mins its tiny.
