@@ -205,9 +205,9 @@ void commandio()
 
 	if (GetAsyncKeyState(VK_ESCAPE))
 	{
-		for (int loop = 1; loop == 1;)
+		int loop = 1;
+		while (loop == 1)
 		{
-			loop = 0;
 			std::cout << "COMMAND: ";
 			std::cin >> command;
 			if (command == "help")
@@ -221,12 +221,11 @@ void commandio()
 					<< std::endl << "rp: Rod insertion percent"
 					<< std::endl << "fire: shoots level 3 pa blast"
 					<< std::endl << "speed: sim speed"
-					<< std::endl << "cancel: cancel command" << std::endl;
-				loop = 1;
+					<< std::endl << "close: close command prompt" << std::endl;
 			}
-			if (command == "cancel")
+			if (command == "close")
 			{
-				std::cout << std::endl << "canceled" << std::endl;
+				std::cout << std::endl << "closed" << std::endl;
 				loop = 0;
 				return;
 			}
@@ -248,7 +247,6 @@ void commandio()
 				shoot();
 				std::cout << std::endl << "pew!" << std::endl;
 				loop = 0;
-				return;
 			}
 			if (command == "rp")
 			{
@@ -256,7 +254,6 @@ void commandio()
 				std::cin >> control_rod_percent;
 				std::cout << std::endl;
 				loop = 0;
-				return;
 			}
 			if (command == "speed")
 			{
@@ -264,7 +261,6 @@ void commandio()
 				std::cin >> speed;
 				std::cout << std::endl;
 				loop = 0;
-				return;
 			}
 			if (command == "rodedit")
 			{
@@ -280,8 +276,6 @@ void commandio()
 						std::cout << "saved" << std::endl;
 						handle_control_rod_efficiency();
 						rodedit = 0;
-						loop = 0;
-						return;
 					}
 					if (command == "view")
 					{
@@ -312,7 +306,7 @@ void commandio()
 							std::cout << std::endl << "INTEGRITY: " << control_rods_i[i] << std::endl;
 						}
 					}
-					else
+					if (command == "1" || command == "2" || command == "3" || command == "4" || command == "5")
 					{
 						int r = std::stoi(command) - 1;
 						std::cout << std::endl << "Select Rod Type: ROD_NONE, ROD_NORMAL, ROD_IRRADIATED, ROD_WEAK, ROD_UPGRADE, ROD_PLASMA" << std::endl;
@@ -372,8 +366,6 @@ void commandio()
 						}
 						std::cout << "saved" << std::endl;
 						fueledit = 0;
-						loop = 0;
-						return;
 					}
 					if (command == "mols")
 					{
@@ -508,7 +500,6 @@ void commandio()
 			}
 		}
 	}
-	return;
 }
 
 void shoot()
@@ -808,6 +799,10 @@ void handle_control_rod_integrity()
 void handle_heat()
 {
 	heat += heat_gain;
+	std::cout << "Heat Gain: " << heat_gain << std::endl;
+	std::cout << "Cooling: " << (cooling_power * cooling_power_modifier) << std::endl;
+	std::cout << "Target Heat (plus some math): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl;
+	std::cout << "Are we cooling?: " << std::endl;
 	target_heat = (-1) + (std::pow(2, (0.1 * ((100 - control_rod_percent) * control_rod_modifier))));
 	if (heat > target_heat + ((cooling_power * cooling_power_modifier) - heat_gain))
 	{
@@ -816,8 +811,21 @@ void handle_heat()
 			if (control_rod_percent > 0)
 			{
 				heat -= cooling_power * cooling_power_modifier;
+				std::cout << "Cooling" << std::endl;
+			}
+			else
+			{
+				std::cout << "Not cooling (Rod Percent)"  << std::endl;
 			}
 		}
+		else
+		{
+			std::cout << "Not cooling (Rod Integrity)" <<  std::endl;
+		}
+	}
+	else
+	{
+		std::cout << "Not cooling (Heat Below Target + Power)" << std::endl;
 	}
 	return;
 }
