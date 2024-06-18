@@ -9,18 +9,32 @@ commands and operands can be put on the same line to some degree.
 example:
 
 fueledit
+
 GAS_O2
+
 14
+
 GAS_N2
+
 15
+
 GAS_PLASMA 42
+
 mols
+
 100
+
 view
+
 save
+
 close
 
-and
+
+
+AND:
+
+
 
 fueledit GAS_O2 14 GAS_N2 15 GAS_PLASMA 42 mols 100 view save close
 
