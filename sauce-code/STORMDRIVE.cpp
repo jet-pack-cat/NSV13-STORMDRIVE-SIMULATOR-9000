@@ -5,7 +5,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <string>
-//Gas Interactions
+#include <fstream>
+//Gas Interactions replacing with config file
 #define LOW_ROR 0.5
 #define NORMAL_ROR 1
 #define HIGH_ROR 1.5
@@ -32,6 +33,14 @@
 
 #define HIGH_DEG_PROTECTION 0.75
 
+#define MOL 0
+#define ROR 1
+#define IPM 2
+#define COOLING 3
+#define RADIATION 4
+#define REINFORCEMENT 5
+#define DEG_PROTECTION 6
+
 //gas type defines
 #define GAS_N2 0
 #define GAS_O2 1
@@ -46,11 +55,30 @@
 #define GAS_CONSTRICTED_PLASMA 10
 #define GAS_H2O 11
 #define GAS_NUCLEIUM 12
-double air1[13] = { 21,21,0,0,0,0,0,0,0,0,21,0,0 };
-double reaction_chamber_gases[13] = { 0,0,0,0,0,0,0,0,0,0,0,0,0 };
-double ratio[13] = { 1,1,0,0,0,0,0,0,0,0,1,0,0 };
-double molcount = 63;
-
+#define GAS_NITRYL 13
+double air1[7][14] = 
+{
+	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //MOLCOUNT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //ROR
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //IPM
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //COOLING
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //RADIATION
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //REINFORCEMENT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
+};
+double reaction_chamber_gases[7][14] = {
+	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //MOLCOUNT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //ROR
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //IPM
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //COOLING
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //RADIATION
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //REINFORCEMENT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
+};
+double ratio[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0 }; //ratio math
+double molcount = 0; //also ratio math
 //Reactor variables
 
 #define REACTOR_STATE_MAINTENANCE 1
@@ -85,7 +113,7 @@ double control_rod_degradation_modifier = 1;
 bool control_rod_installation = false;
 double control_rods_i[5] =
 {
-{ 100 }, //integrity
+{ 0 }, //integrity
 { 0 },
 { 0 },
 { 0 },
@@ -93,7 +121,7 @@ double control_rods_i[5] =
 };
 int control_rods_t[5] =
 {
-{ 1 }, //type
+{ 0 }, //type
 { 0 },
 { 0 },
 { 0 },
@@ -160,7 +188,7 @@ void handle_temperature_reinforcement();
 void handle_reactor_stability();
 void handle_control_rod_efficiency();
 void handle_control_rod_integrity();
-void initalize();
+int initalize();
 void process();
 void commandio();
 void display();
@@ -170,7 +198,10 @@ int meltdowntimer = 19;
 int main()
 {
 
-	initalize();
+	if (initalize())
+	{
+		std::cerr << "INITALIZATION FAILED!" << std::endl;
+	}
 
 	while (GAMESTATE == RUNNING)
 	{
@@ -179,23 +210,172 @@ int main()
 		display();
 		process();
 	}
-	std::cout << "process halted";
+
+	std::cout << "process halted" << std::endl;
+	system("pause");
 	return 0;
 }
-void initalize()
+int initalize()
 {
+	//GET CONFIG
+
+	std::ifstream sdconfig;
+	sdconfig.open("sdconfig.txt");
+
+	//error checking
+
+	if (sdconfig.fail())
+	{
+		std::cerr << "NO CONFIG FILE!" << std::endl;
+		sdconfig.close();
+		GAMESTATE = STOP;
+		return 1;
+	}
+	int count = 0;
+	double number = 0;
+	while (!sdconfig.eof()) //this should be a function but I dont care it runs once
+	{
+		sdconfig >> number;
+		count++;
+	}
+	sdconfig.clear();
+	sdconfig.seekg(0);
+	if (count != 109)
+	{
+		std::cerr << "CONFIG CORRUPT! " << count << std::endl;
+		sdconfig.close();
+		GAMESTATE = STOP;
+	}
+	else
+	{
+		//file exists
+		std::cout << "READING CONFIG FILE" << std::endl;
+
+		sdconfig >> molcount; //molcount
+
+		for (int i = 0; i < 14; i++) //Reading ratio numbers
+		{
+			sdconfig >> ratio[i];
+		}
+
+		for (int i = 1; i < 7; i++) //Which property are we reading (we dont need to read mols)
+		{
+			for (int k = 0; k < 14; k++) //Which gas type
+			{
+				sdconfig >> air1[i][k];
+				reaction_chamber_gases[i][k] = air1[i][k];
+			}
+		}
+
+		double t = 0;
+		for (int i = 0; i < 14; i++) //calculate gasses
+		{
+			t += ratio[i];
+		}
+		t = molcount / t;
+		for (int i = 0; i < 14; i++)
+		{
+			air1[MOL][i] = ratio[i] * (t);
+		}
+
+		for (int i = 0; i < 5; i++) //rod integrity
+		{
+			sdconfig >> control_rods_i[i];
+		}
+
+		for (int i = 0; i < 5; i++) //rod type
+		{
+			sdconfig >> control_rods_t[i];
+		}
+
+
+		//read off configured settings
+
+		std::cout << molcount << " MOLCOUNT" << std::endl;
+
+		for (int i = 0; i < 14; i++) //Reading ratio numbers
+		{
+			std::cout << ratio[i] << " ";
+		}
+
+		std::cout << "RATIO" << std::endl;
+
+		for (int i = 0; i < 7; i++)
+		{
+			for (int k = 0; k < 14; k++)
+			{
+				std::cout << air1[i][k] << " ";
+			}
+			switch (i)
+			{
+			case 0:
+				std::cout << "MOLS";
+				break;
+			case 1:
+				std::cout << "ROR";
+				break;
+			case 2:
+				std::cout << "IPM";
+				break;
+			case 3:
+				std::cout << "COOLING";
+				break;
+			case 4:
+				std::cout << "RADIATION";
+				break;
+			case 5:
+				std::cout << "REINFORCEMENT";
+				break;
+			case 6:
+				std::cout << "DEG_PROTECTION";
+				break;
+			}
+			std::cout << std::endl;
+		}
+
+		for (int i = 0; i < 5; i++)
+		{
+			std::cout << std::endl << i << " ROD TYPE: ";
+			switch (control_rods_t[i])
+			{
+			case 0:
+				std::cout << "ROD_NONE";
+				break;
+			case 1:
+				std::cout << "ROD_NORMAL";
+				break;
+			case 2:
+				std::cout << "ROD_UPGRADE";
+				break;
+			case 3:
+				std::cout << "ROD_IRRADIATED";
+				break;
+			case 4:
+				std::cout << "ROD_WEAK";
+				break;
+			case 5:
+				std::cout << "ROD_PLASMA";
+				break;
+			}
+			std::cout << std::endl << "INTEGRITY: " << control_rods_i[i] << std::endl;
+		}
+	}
+	sdconfig.close();
+	std::cout << "Config success!" << std::endl;
+	system("pause");
+	std::system("cls");
 	std::cout
 		<< "Welcome to the Stormdrive Simulator 9000" << std::endl
 		<< "This is designed to be an accurate stormdrive simulation." << std::endl
-		<< "But without the annoyances of atmospherics or crew" << std::endl
-		<< "starts out with a 1:1:1 n2:o2:cnp mix at 8 rod percent by default" << std::endl;
+		<< "But without the annoyances of atmospherics or crew" << std::endl;
 	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help" << std::endl;
+	
 	while (GAMESTATE == INITALIZE)
 	{
 		commandio();
 	}
 	handle_control_rod_efficiency();
-	return;
+	return 0;
 }
 
 void commandio()
@@ -355,14 +535,14 @@ void commandio()
 					if (command == "save")
 					{
 						double t = 0;
-						for (int i = 0; i < 13; i++)
+						for (int i = 0; i < 14; i++)
 						{
 							t += ratio[i];
 						}
 						t = molcount / t;
-						for (int i = 0; i < 13; i++)
+						for (int i = 0; i < 14; i++)
 						{
-							air1[i] = ratio[i] * (t);
+							air1[MOL][i] = ratio[i] * (t);
 						}
 						std::cout << "saved" << std::endl;
 						fueledit = 0;
@@ -375,57 +555,60 @@ void commandio()
 					if (command == "view")
 					{
 						double t = 0;
-						for (int i = 0; i < 13; i++)
+						for (int i = 0; i < 14; i++)
 						{
 							t += ratio[i];
 						}
 						t = molcount / t;
-						for (int i = 0; i < 13; i++)
+						for (int i = 0; i < 14; i++)
 						{
-							air1[i] = ratio[i] * (t);
+							air1[MOL][i] = ratio[i] * (t);
 						}
-						for (int i = 0; i < 13; i++)
+						for (int i = 0; i < 14; i++)
 						{
 							switch (i)
 							{
 							case 0:
-								std::cout << "GAS_N2: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_N2: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 1:
-								std::cout << "GAS_O2: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_O2: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 2:
-								std::cout << "GAS_CO2: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_CO2: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 3:
-								std::cout << "GAS_PLASMA: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_PLASMA: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 4:
-								std::cout << "GAS_TRITIUM: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_TRITIUM: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 5:
-								std::cout << "GAS_NITROUS: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_NITROUS: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 6:
-								std::cout << "GAS_PLUOXIUM: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_PLUOXIUM: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 7:
-								std::cout << "GAS_HYPERNOB: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_HYPERNOB: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 8:
-								std::cout << "GAS_STIMULUM: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_STIMULUM: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 9:
-								std::cout << "GAS_BZ: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_BZ: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 10:
-								std::cout << "GAS_CONSTRICTED_PLASMA: " << ratio[i] << " mols " << air1[i]<< std::endl;
+								std::cout << "GAS_CONSTRICTED_PLASMA: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 11:
-								std::cout << "GAS_H2O: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_H2O: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							case 12:
-								std::cout << "GAS_NUCLEIUM: " << ratio[i] << " mols " << air1[i] << std::endl;
+								std::cout << "GAS_NUCLEIUM: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
+								break;
+							case 13:
+								std::cout << "GAS_NITRYL: " << ratio[i] << " mols " << air1[MOL][i] << std::endl;
 								break;
 							}
 						}
@@ -496,6 +679,11 @@ void commandio()
 						std::cout << std::endl << "Ratio Number: ";
 						std::cin >> ratio[GAS_NUCLEIUM];
 					}
+					if (command == "GAS_NITRYL")
+					{
+						std::cout << std::endl << "Ratio Number: ";
+						std::cin >> ratio[GAS_NITRYL];
+					}
 				}
 			}
 		}
@@ -514,14 +702,13 @@ void try_start()
 	{
 		return;
 	}
-	fuel_check = (
-		(air1[GAS_PLASMA] * LOW_ROR) +
-		(air1[GAS_CONSTRICTED_PLASMA] * NORMAL_ROR) +
-		(air1[GAS_TRITIUM] * HIGH_ROR) +
-		(air1[GAS_CO2] * HINDER_ROR) +
-		(air1[GAS_H2O] * HINDER_ROR) +
-		(air1[GAS_HYPERNOB] * REALLY_HINDER_ROR)
-		);
+	fuel_check = 0;
+	for (int i = 1; i < 14; i++) //does not take n2 into ror for whatever reason :)
+	{
+		fuel_check += ((air1[ROR][i]) * (air1[MOL][i]));
+	}
+	std::cout << "Fuel Check: " << fuel_check << std::endl ;
+	std::cout << "Start: " << start_threshold << std::endl;
 	if (fuel_check >= start_threshold && heat >= start_threshold)
 	{
 		reactor_stability = 100;
@@ -532,7 +719,9 @@ void try_start()
 			reaction_rate = 5;
 		}
 	}
-	else {
+	else 
+	{
+		std::cout << "Failed to start " << fuel_check << std::endl;
 	}
 	return;
 }
@@ -560,84 +749,64 @@ void process()
 	total_moles = 0;
 	for (int i = 0; i < 13; i++)
 	{
-		total_moles += air1[i];
+		total_moles += air1[MOL][i];
 	}
 
-	double fuel_check = ((air1[GAS_PLASMA] + air1[GAS_CONSTRICTED_PLASMA] + air1[GAS_TRITIUM]) / total_moles) * 100;
+	double fuel_check = ((air1[MOL][GAS_PLASMA] + air1[MOL][GAS_CONSTRICTED_PLASMA] + air1[MOL][GAS_TRITIUM]) / total_moles) * 100;
 	if (total_moles >= reaction_rate && fuel_check >= 12.5)
 	{
 		for (int i = 0; i < 13; i++)
 		{
-			reaction_chamber_gases[i] = (air1[i]/total_moles) * reaction_rate;
+			reaction_chamber_gases[MOL][i] = (air1[MOL][i] / total_moles) * reaction_rate;
 		}
-		chamber_ror_total =
-			(
-				reaction_chamber_gases[GAS_PLASMA] * LOW_ROR +
-				reaction_chamber_gases[GAS_CONSTRICTED_PLASMA] * NORMAL_ROR +
-				reaction_chamber_gases[GAS_TRITIUM] * HIGH_ROR +
-				reaction_chamber_gases[GAS_N2] * HINDER_ROR +
-				reaction_chamber_gases[GAS_H2O] * HINDER_ROR +
-				reaction_chamber_gases[GAS_HYPERNOB] * REALLY_HINDER_ROR
-			);
+		chamber_ror_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_ror_total += ((reaction_chamber_gases[ROR][i]) * (reaction_chamber_gases[MOL][i]));
+		}
 		reaction_rate_modifier = chamber_ror_total / reaction_rate;
-
-		chamber_ipm_total = reaction_rate +
-			(
-				reaction_chamber_gases[GAS_TRITIUM] * HIGH_IPM +
-				reaction_chamber_gases[GAS_O2] * HIGH_IPM +
-				reaction_chamber_gases[GAS_PLUOXIUM] * HIGH_IPM +
-				reaction_chamber_gases[GAS_STIMULUM] * VERY_HIGH_IPM -
-				reaction_chamber_gases[GAS_PLASMA] * MEDIOCRE_IPM -
-				reaction_chamber_gases[GAS_CO2] * LOW_IPM -
-				reaction_chamber_gases[GAS_HYPERNOB] * LOW_IPM
-			);
+		chamber_ipm_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_ipm_total += ((reaction_chamber_gases[IPM][i]) * (reaction_chamber_gases[MOL][i]));
+		}
+		chamber_ipm_total += reaction_rate;
 		input_power_modifier = chamber_ipm_total / reaction_rate;
-
-		chamber_cooling_total = reaction_rate +
-			(
-				reaction_chamber_gases[GAS_HYPERNOB] * VERY_HIGH_COOLING +
-				reaction_chamber_gases[GAS_N2] * HIGH_COOLING +
-				reaction_chamber_gases[GAS_CO2] * HIGH_COOLING -
-				reaction_chamber_gases[GAS_TRITIUM] * LOW_COOLING -
-				reaction_chamber_gases[GAS_NUCLEIUM] * LOW_COOLING -
-				reaction_chamber_gases[GAS_STIMULUM] * LOW_COOLING
-			);
+		chamber_cooling_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_cooling_total += ((reaction_chamber_gases[COOLING][i]) * (reaction_chamber_gases[MOL][i]));
+		}
+		chamber_cooling_total += reaction_rate;
 		cooling_power_modifier = chamber_cooling_total / reaction_rate;
-
-		chamber_radiation_total = reaction_rate +
-			(
-				reaction_chamber_gases[GAS_PLUOXIUM] * HIGH_RADIATION +
-				reaction_chamber_gases[GAS_TRITIUM] * HIGH_RADIATION -
-				reaction_chamber_gases[GAS_BZ] * LOW_RADIATION 
-			);
+		chamber_radiation_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_radiation_total += ((reaction_chamber_gases[RADIATION][i]) * (reaction_chamber_gases[MOL][i]));
+		}
+		chamber_radiation_total += reaction_rate;
 		radiation_modifer = chamber_radiation_total / reaction_rate;
-
-		chamber_reinforcement_total = reaction_rate +
-			(
-				reaction_chamber_gases[GAS_PLUOXIUM] * VERY_HIGH_REINFORCEMENT +
-				reaction_chamber_gases[GAS_TRITIUM] * HIGH_REINFORCEMENT +
-				reaction_chamber_gases[GAS_NITROUS] * HIGH_REINFORCEMENT -
-				reaction_chamber_gases[GAS_NUCLEIUM] * LOW_REINFORCEMENT -
-				reaction_chamber_gases[GAS_STIMULUM] * LOW_REINFORCEMENT -
-				reaction_chamber_gases[GAS_BZ] * LOW_REINFORCEMENT
-			);
+		chamber_reinforcement_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_reinforcement_total += ((reaction_chamber_gases[REINFORCEMENT][i]) * (reaction_chamber_gases[MOL][i]));
+		}
+		chamber_reinforcement_total += reaction_rate;
 		reactor_temperature_modifier = chamber_reinforcement_total / reaction_rate;
-
-		chamber_degradation_total = reaction_rate +
-			(
-				reaction_chamber_gases[GAS_PLASMA] * HIGH_DEG_PROTECTION +
-				reaction_chamber_gases[GAS_NITROUS] * HIGH_DEG_PROTECTION +
-				reaction_chamber_gases[GAS_HYPERNOB] * HIGH_DEG_PROTECTION +
-				reaction_chamber_gases[GAS_PLUOXIUM] * HIGH_DEG_PROTECTION
-			);
+		chamber_degradation_total = 0;
+		for (int i = 0; i < 14; i++)
+		{
+			chamber_degradation_total += ((reaction_chamber_gases[DEG_PROTECTION][i]) * (reaction_chamber_gases[MOL][i]));
+		}
+		chamber_degradation_total += reaction_rate;
 		control_rod_degradation_modifier = chamber_degradation_total / reaction_rate;
 
-		nucleium_power_reduction = reaction_chamber_gases[GAS_NUCLEIUM] * 1000;
+		nucleium_power_reduction = reaction_chamber_gases[MOL][GAS_NUCLEIUM] * 1000;
 
 		heat_gain = heat_gaini + reaction_rate;
 		for (int i = 0; i < 13; i++)
 		{
-			reaction_chamber_gases[i] = 0;
+			reaction_chamber_gases[MOL][i] = 0;
 		}
 
 		if (total_moles > ((reaction_rate * 12) + 20))
