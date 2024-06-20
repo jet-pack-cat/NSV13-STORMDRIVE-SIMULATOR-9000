@@ -715,8 +715,8 @@ void commandio()
 				bool polledit = 1;
 				while (polledit == 1)
 				{
-					std::cout << std::endl << "Welcome to poledit, here you can edit how average polling works" << std::endl
-						<< "Type pollcount, to edit how many samples you want to poll (MAX 200), type reset to reset samples, type save to save and reset the samples" << std::endl;
+					std::cout << std::endl << "Welcome to polledit, here you can edit how average polling works" << std::endl
+						<< "Type pollcount, to edit how many samples you want to poll (MAX 200), type save to save and reset the samples" << std::endl;
 					std::cin >> command;
 					if (command == "pollcount")
 					{
