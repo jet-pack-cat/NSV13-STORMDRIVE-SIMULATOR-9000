@@ -6,7 +6,10 @@
 #include <cstdio>
 #include <string>
 #include <fstream>
-//Gas Interactions replacing with config file
+
+//horrible to read, horribly programmed, design philosophy is "it just works", worst thing ever created
+
+//Gas Interactions replacing with config file, these are unused
 #define LOW_ROR 0.5
 #define NORMAL_ROR 1
 #define HIGH_ROR 1.5
@@ -33,6 +36,7 @@
 
 #define HIGH_DEG_PROTECTION 0.75
 
+//defines for gas properties
 #define MOL 0
 #define ROR 1
 #define IPM 2
@@ -56,6 +60,11 @@
 #define GAS_H2O 11
 #define GAS_NUCLEIUM 12
 #define GAS_NITRYL 13
+
+
+//Hella public variables and functions, is this bad? yes, do I care? no.
+
+//gas storage arrays, lets you modify gas properties, could be an object but why bother.
 double air1[7][14] = 
 {
 	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
@@ -77,10 +86,11 @@ double reaction_chamber_gases[7][14] = {
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //REINFORCEMENT
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
 };
+
 double ratio[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0 }; //ratio math
 double molcount = 0; //also ratio math
-//Reactor variables
 
+//more reactor defines just copy and pasted, most arn't even used.
 #define REACTOR_STATE_MAINTENANCE 1
 #define REACTOR_STATE_IDLE 2
 #define REACTOR_STATE_RUNNING 3
@@ -95,12 +105,14 @@ double molcount = 0; //also ratio math
 
 #define MAX_CONTROL_RODS 5
 
+
+//amazing game loop
 #define INITALIZE 0
 #define RUNNING 1
 #define STOP 2
-
 int GAMESTATE = 0;
-//variables
+
+//lots of variables
 double start_threshold = 20;
 double heat = 0;
 double target_heat = 200;
@@ -129,14 +141,14 @@ int control_rods_t[5] =
 };
 int control_rods_l = 0;
 double control_rod_integrity_total = 0;
-
+//rod type defines
 #define ROD_NONE 0
 #define ROD_NORMAL 1
 #define ROD_UPGRADE 2
 #define ROD_IRRADIATED 3
 #define ROD_WEAK 4
 #define ROD_PLASMA 5
-
+//more variables
 double heat_gain = 5;
 double heat_gaini = 5;
 double heat_gain_modifier = 1;
@@ -179,6 +191,7 @@ double control_rod_effectiveness_total = 0;
 double rod_effectiveness = 0;
 double fuel_check = 0;
 double total_moles = 0;
+//more variables and functions :D
 void try_start();
 void shoot();
 void deactivate();
@@ -195,6 +208,15 @@ void display();
 int speed = 1000;
 void handle_overload();
 int meltdowntimer = 19;
+void handle_meltdown();
+double temp_avg = 0;
+double temps[200] = {}; //list of temperatures :)
+double power_avg = 0;
+double powers[200] = {0}; //power
+int polling_count = 200;
+int polls = 0;
+int total_polls = 0;
+void getavg();
 int main()
 {
 
@@ -205,10 +227,11 @@ int main()
 
 	while (GAMESTATE == RUNNING)
 	{
+		std::system("cls");
+		process();
+		display();
 		commandio();
 		Sleep(speed);
-		display();
-		process();
 	}
 
 	std::cout << "process halted" << std::endl;
@@ -369,7 +392,7 @@ int initalize()
 		<< "This is designed to be an accurate stormdrive simulation." << std::endl
 		<< "But without the annoyances of atmospherics or crew" << std::endl;
 	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help" << std::endl;
-	
+
 	while (GAMESTATE == INITALIZE)
 	{
 		commandio();
@@ -393,7 +416,7 @@ void commandio()
 			if (command == "help")
 			{
 				std::cout << std::endl << "help: Displays this menu"
-					<< std::endl << "go: ends initalization"
+					<< std::endl << "go: ends initalization starts program"
 					<< std::endl << "stop: Ends Program"
 					<< std::endl << "------------------"
 					<< std::endl << "fueledit: lets you edit fuel ratio"
@@ -401,7 +424,8 @@ void commandio()
 					<< std::endl << "rp: Rod insertion percent"
 					<< std::endl << "fire: shoots level 3 pa blast"
 					<< std::endl << "speed: sim speed"
-					<< std::endl << "close: close command prompt" << std::endl;
+					<< std::endl << "close: close command prompt"
+					<< std::endl << "polledit: setup averages polling or reset" << std::endl;
 			}
 			if (command == "close")
 			{
@@ -686,6 +710,66 @@ void commandio()
 					}
 				}
 			}
+			if (command == "polledit")
+			{
+				bool polledit = 1;
+				while (polledit == 1)
+				{
+					std::cout << std::endl << "Welcome to poledit, here you can edit how average polling works" << std::endl
+						<< "Type pollcount, to edit how many samples you want to poll (MAX 200), type reset to reset samples, type save to save and reset the samples" << std::endl;
+					std::cin >> command;
+					if (command == "pollcount")
+					{
+						std::cout << std::endl << "sample count: ";
+						std::cin >> command;
+						int a = 0;
+						try 
+						{
+							a = std::stoi(command);
+						}
+						catch(std::exception &err)
+						{
+							a = 0;
+						}
+						if (a <= 200 && a > 0)
+						{
+							polling_count = a;
+							polls = 0;
+							total_polls = 0;
+							for (int i = 0; i < polling_count; i++)
+							{
+								temps[i] = 0;
+								powers[i] = 0;
+							}
+						}
+						else
+						{
+							std::cout << "INVALID ENTRY >:(" << std::endl;
+						}
+					}
+					if (command == "view")
+					{
+						for (int i = 0; i < polling_count; i++)
+						{
+							std::cout << "sample: " << i + 1 << std::endl;
+							std::cout << "heat: " << temps[i] << std::endl;
+							std::cout << "power: " << powers[i] << std::endl;
+						}
+					}
+					if (command == "save")
+					{
+						polls = 0;
+						total_polls = 0;
+						for (int i = 0; i < polling_count; i++)
+						{
+							temps[i] = 0;
+							powers[i] = 0;
+						}
+						polledit = 0;
+						std::cout << "saved and reset" << std::endl;
+					}
+				}
+			}
 		}
 	}
 }
@@ -728,11 +812,8 @@ void try_start()
 
 void process()
 {
-	if (state >= REACTOR_STATE_REPAIR)
-	{
-		return;
-	}
-	
+	std::cout << "Alarms: " << std::endl;
+	handle_meltdown(); 
 	if (state == REACTOR_STATE_MELTDOWN)
 	{
 		radiation = 1000 * radiation_modifer;
@@ -850,7 +931,7 @@ void process()
 		handle_overload();
 		//get a grounding rod
 	}
-
+	
 	return;
 }
 
@@ -968,10 +1049,7 @@ void handle_control_rod_integrity()
 void handle_heat()
 {
 	heat += heat_gain;
-	std::cout << "Heat Gain: " << heat_gain << std::endl;
-	std::cout << "Cooling: " << (cooling_power * cooling_power_modifier) << std::endl;
-	std::cout << "Target Heat (plus some math): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl;
-	std::cout << "Are we cooling?: " << std::endl;
+	std::cout << "Are we cooling?: ";
 	target_heat = (-1) + (std::pow(2, (0.1 * ((100 - control_rod_percent) * control_rod_modifier))));
 	if (heat > target_heat + ((cooling_power * cooling_power_modifier) - heat_gain))
 	{
@@ -980,7 +1058,14 @@ void handle_heat()
 			if (control_rod_percent > 0)
 			{
 				heat -= cooling_power * cooling_power_modifier;
-				std::cout << "Cooling" << std::endl;
+				if (heat_gain >= cooling_power * cooling_power_modifier)
+				{
+					std::cout << "Cooling lower than heat gain!" << std::endl;
+				}
+				else 
+				{
+					std::cout << "Cooling" << std::endl;
+				}
 			}
 			else
 			{
@@ -1110,72 +1195,36 @@ void deactivate()
 
 void display()
 {
-	std::system("cls");
-	if (warning_state >= WARNING_STATE_OVERHEAT)
-	{
-		if (heat <= reactor_temperature_critical)
-		{
-			warning_state = 0;
-			std::cout << "Nuclear Meltdown Averted" << std::endl << std::endl;
-			reactor_end_times = false;
-			meltdowntimer = 19;
-		}
-	}
-	if (heat >= reactor_temperature_critical)
-	{
-		warning_state = WARNING_STATE_OVERHEAT;
-		std::cout << "NUCLEAR MELTDOWN IMMINENT!!!" << std::endl << std::endl; 
-	}
-	if (heat >= reactor_temperature_meltdown)
-	{
-		if (warning_state < WARNING_STATE_MELTDOWN)
-		{
-			for (int i = 0; i < 5; i++)
-			{
-				if (control_rods_t[i] != ROD_NONE) //dont touch rods that dont exist
-				{
-					if (control_rods_t[i] != ROD_IRRADIATED)
-					{
-						control_rods_i[i] = 0;
-						control_rods_t[i] = ROD_IRRADIATED;
-					}
-					handle_control_rod_efficiency();
-				}
-			}
-			std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << std::endl;
-			reactor_end_times = true;
-			meltdowntimer--;
-			std::cout << "MELTDOWN T-: " << meltdowntimer << std::endl;
-			if (meltdowntimer == 0)
-			{
-				if (heat >= reactor_temperature_meltdown)
-				{
-					state = REACTOR_STATE_MELTDOWN;
-					reactor_end_times = false;
-				}
-			}
-		}
-	}
-	if (state == REACTOR_STATE_MELTDOWN)
-	{
-		std::cout << "YOU DIED THE END!!!" << std::endl;
-		return;
-	}
+	//this is where all the reactor stats should be displayed :)
+	getavg();
 	std::cout << std::endl
-		<< "STORMDRIVE 1000 DISPLAY:" << std::endl
-		<< "" << std::endl
+		<< "STORMDRIVE 1000 STATS:" << std::endl
+		<< std::endl
 		<< "Temperature: " << heat << "C" << std::endl
+		<< "Temperature mean avg: " << temp_avg << "C" << std::endl
 		<< "Temperature Nominal: " << reactor_temperature_nominal << "C" << std::endl
 		<< "Temperature Hot: " << reactor_temperature_hot << "C" << std::endl
 		<< "Temperature Critical: " << reactor_temperature_critical << "C" << std::endl
 		<< "Temperature Meltdown:" << reactor_temperature_meltdown << "C" << std::endl
+		<< std::endl
+		<< "Target Heat (plus some math): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl
+		<< "Heat Gain: " << heat_gain << std::endl
+		<< "Cooling: " << (cooling_power * cooling_power_modifier) << std::endl
+		<< std::endl
 		<< "Power Output: " << last_power_produced << "W " << last_power_produced / 1000000 << "MW" << std::endl
+		<< "Power Output mean avg: " << power_avg << "W " << power_avg / 1000000 << "MW" << std::endl
+		<< std::endl
 		<< "Rod Insertion: " << control_rod_percent << "%" << std::endl
 		<< "Rod Depletion (avg): " << control_rod_integrity << "%" << std::endl
+		<< std::endl
 		<< "Reaction Rate: " << reaction_rate << "mol/s" << std::endl
+		<< std::endl
 		<< "Stability: " << reactor_stability << "%" << std::endl
+		<< std::endl
 		<< "Fuel Mols: " << total_moles << std::endl
-		<< "Radiation: " << radiation << std::endl;
+		<< std::endl
+		<< "Radiation: " << radiation << std::endl
+		<< std::endl;
 	return;
 }
 
@@ -1205,5 +1254,97 @@ void handle_overload()
 			reactor_stability -= std::rand() % 10 + 10;
 		}
 	}
+	return;
+}
+
+void handle_meltdown()
+{
+	if (warning_state >= WARNING_STATE_OVERHEAT)
+	{
+		if (heat <= reactor_temperature_critical)
+		{
+			warning_state = 0;
+			std::cout << "Nuclear Meltdown Averted" << std::endl << std::endl;
+			reactor_end_times = false;
+			meltdowntimer = 19;
+		}
+	}
+	if (heat >= reactor_temperature_critical)
+	{
+		warning_state = WARNING_STATE_OVERHEAT;
+		std::cout << "NUCLEAR MELTDOWN IMMINENT!!!" << std::endl << std::endl;
+	}
+	if (heat >= reactor_temperature_meltdown)
+	{
+		if (warning_state < WARNING_STATE_MELTDOWN)
+		{
+			for (int i = 0; i < 5; i++)
+			{
+				if (control_rods_t[i] != ROD_NONE) //dont touch rods that dont exist
+				{
+					if (control_rods_t[i] != ROD_IRRADIATED)
+					{
+						control_rods_i[i] = 0;
+						control_rods_t[i] = ROD_IRRADIATED;
+					}
+					handle_control_rod_efficiency();
+				}
+			}
+			std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << std::endl;
+			reactor_end_times = true;
+			meltdowntimer--;
+			std::cout << "MELTDOWN T-: " << meltdowntimer << std::endl << std::endl;
+			if (meltdowntimer == 0)
+			{
+				if (heat >= reactor_temperature_meltdown)
+				{
+					state = REACTOR_STATE_MELTDOWN;
+					reactor_end_times = false;
+				}
+			}
+		}
+	}
+	if (state == REACTOR_STATE_MELTDOWN)
+	{
+		std::cout << "YOU DIED THE END!!!" << std::endl;
+		GAMESTATE = STOP;
+		return;
+	}
+}
+
+void getavg()
+{
+	if (state != REACTOR_STATE_RUNNING)
+	{
+		return;
+	}
+	temps[polls] = heat; //poll for power and heat
+	powers[polls] = last_power_produced;
+	if (polls == polling_count) //reset index when you get enough and start rewriting
+	{
+		polls = 0;
+	}
+	else
+	{
+		polls++; //add to how many times we polled already 
+	}
+	if (total_polls != polling_count) // some nice math for very high poll counts
+	{
+		total_polls = polls;
+	}
+	double sumtemp = 0;
+	double sumpower = 0;
+	double polldif = polling_count - total_polls;
+	if (polldif == polling_count)
+	{
+		polldif = polling_count - 1; //NO DIVIDING BY ZERO!!!!! >:(
+	}
+	for (int i = 0; i < polling_count - polldif; i++) //math time
+	{
+		sumtemp += temps[i];
+		sumpower += powers[i];
+	}
+	temp_avg = sumtemp / (polling_count - polldif);
+	power_avg = sumpower / (polling_count - polldif);
 	return;
 }
