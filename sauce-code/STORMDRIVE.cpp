@@ -1320,7 +1320,7 @@ void getavg()
 	}
 	temps[polls] = heat; //poll for power and heat
 	powers[polls] = last_power_produced;
-	if (polls == polling_count) //reset index when you get enough and start rewriting
+	if (polls == polling_count - 1) //reset index so we DONT FUCKING INDEX OUT OF BOUNDS
 	{
 		polls = 0;
 	}
