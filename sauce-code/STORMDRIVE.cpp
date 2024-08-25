@@ -65,7 +65,7 @@
 //Hella public variables and functions, is this bad? yes, do I care? no.
 
 //gas storage arrays, lets you modify gas properties, could be an object but why bother.
-double air1[7][14] = 
+float air1[7][14] = 
 {
 	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //MOLCOUNT
@@ -76,7 +76,7 @@ double air1[7][14] =
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //REINFORCEMENT
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
 };
-double reaction_chamber_gases[7][14] = {
+float reaction_chamber_gases[7][14] = {
 	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //MOLCOUNT
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //ROR
@@ -87,8 +87,8 @@ double reaction_chamber_gases[7][14] = {
 	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
 };
 
-double ratio[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0 }; //ratio math
-double molcount = 0; //also ratio math
+float ratio[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0 }; //ratio math
+float molcount = 0; //also ratio math
 
 //more reactor defines just copy and pasted, most arn't even used.
 #define REACTOR_STATE_MAINTENANCE 1
@@ -113,17 +113,17 @@ double molcount = 0; //also ratio math
 int GAMESTATE = 0;
 
 //lots of variables
-double start_threshold = 20;
-double heat = 0;
-double target_heat = 200;
-double cooling_power = 10;
-double cooling_power_modifier = 1;
-double control_rod_percent = 8;
-double control_rod_integrity = 0;
-double control_rod_modifier = 0;
-double control_rod_degradation_modifier = 1;
+float start_threshold = 20;
+float heat = 0;
+float target_heat = 200;
+float cooling_power = 10;
+float cooling_power_modifier = 1;
+float control_rod_percent = 8;
+float control_rod_integrity = 0;
+float control_rod_modifier = 0;
+float control_rod_degradation_modifier = 1;
 bool control_rod_installation = false;
-double control_rods_i[5] =
+float control_rods_i[5] =
 {
 { 0 }, //integrity
 { 0 },
@@ -140,7 +140,7 @@ int control_rods_t[5] =
 { 0 },
 };
 int control_rods_l = 0;
-double control_rod_integrity_total = 0;
+float control_rod_integrity_total = 0;
 //rod type defines
 #define ROD_NONE 0
 #define ROD_NORMAL 1
@@ -149,48 +149,48 @@ double control_rod_integrity_total = 0;
 #define ROD_WEAK 4
 #define ROD_PLASMA 5
 //more variables
-double heat_gain = 5;
-double heat_gaini = 5;
-double heat_gain_modifier = 1;
+float heat_gain = 5;
+float heat_gaini = 5;
+float heat_gain_modifier = 1;
 int warning_state = WARNING_STATE_NONE;
-double reaction_rate = 0;
-double target_reaction_rate = 0;
-double delta_reaction_rate = 0;
-double reaction_rate_modifier = 1;
-double power_loss = 2;
-double input_power = 0;
-double input_power_modifier = 1;
+float reaction_rate = 0;
+float target_reaction_rate = 0;
+float delta_reaction_rate = 0;
+float reaction_rate_modifier = 1;
+float power_loss = 2;
+float input_power = 0;
+float input_power_modifier = 1;
 int state = REACTOR_STATE_IDLE;
-double rod_integrity = 100;
-double alert_cooldown = 20;
-double last_power_produced = 0;
-double theoretical_maximum_power = 15000000;
-double radiation_modifer = 1;
-double reactor_temperature_nominal = 200;
-double reactor_temperature_hot = 400;
-double reactor_temperature_critical = 650;
-double reactor_temperature_meltdown = 800;
-double reactor_temperature_modifier = 1;
-double reactor_temperature_nominal_i = 200;
-double reactor_temperature_hot_i = 400;
-double reactor_temperature_critical_i = 650;
-double reactor_temperature_meltdown_i = 800;
-double reactor_stability = 100;
-double base_power = 67500;
-double power_produced = 0;
+float rod_integrity = 100;
+float alert_cooldown = 20;
+float last_power_produced = 0;
+float theoretical_maximum_power = 15000000;
+float radiation_modifer = 1;
+float reactor_temperature_nominal = 200;
+float reactor_temperature_hot = 400;
+float reactor_temperature_critical = 650;
+float reactor_temperature_meltdown = 800;
+float reactor_temperature_modifier = 1;
+float reactor_temperature_nominal_i = 200;
+float reactor_temperature_hot_i = 400;
+float reactor_temperature_critical_i = 650;
+float reactor_temperature_meltdown_i = 800;
+float reactor_stability = 100;
+float base_power = 67500;
+float power_produced = 0;
 bool reactor_end_times = false;
-double nucleium_power_reduction = 0;
-double chamber_ror_total = 0;
-double chamber_ipm_total = 0;
-double chamber_cooling_total = 0;
-double chamber_radiation_total = 0;
-double chamber_reinforcement_total = 0;
-double chamber_degradation_total = 0;
-double radiation = 0;
-double control_rod_effectiveness_total = 0;
-double rod_effectiveness = 0;
-double fuel_check = 0;
-double total_moles = 0;
+float nucleium_power_reduction = 0;
+float chamber_ror_total = 0;
+float chamber_ipm_total = 0;
+float chamber_cooling_total = 0;
+float chamber_radiation_total = 0;
+float chamber_reinforcement_total = 0;
+float chamber_degradation_total = 0;
+float radiation = 0;
+float control_rod_effectiveness_total = 0;
+float rod_effectiveness = 0;
+float fuel_check = 0;
+float total_moles = 0;
 //more variables and functions :D
 void try_start();
 void shoot();
@@ -209,10 +209,24 @@ int speed = 1000;
 void handle_overload();
 int meltdowntimer = 19;
 void handle_meltdown();
-double temp_avg = 0;
-double temps[200] = {}; //list of temperatures :)
-double power_avg = 0;
-double powers[200] = {0}; //power
+float temp_avg = 0;
+float temp_peak = 0;
+float temperature_delta_min = 0;
+float temperature_delta_max = -80085;
+float cooling_peak = 0;
+float heating_peak = 0;
+float temps[200] = {}; //list of temperatures :)
+float rod_last = 100;
+float roddep_last = 0;
+float dep_avg = 0;
+float dep_peak = 0;
+float rod_lifetime = -1;
+float rod_lifetime_max = -1;
+float roddeps[200] = {}; //ROD DEPLETION STATS :)
+float power_avg = 0;
+float power_peak = 0;
+float powers[200] = {0}; //power
+float uptime = 0;
 int polling_count = 200;
 int polls = 0;
 int total_polls = 0;
@@ -255,7 +269,7 @@ int initalize()
 		return 1;
 	}
 	int count = 0;
-	double number = 0;
+	float number = 0;
 	while (!sdconfig.eof()) //this should be a function but I dont care it runs once
 	{
 		sdconfig >> number;
@@ -290,7 +304,7 @@ int initalize()
 			}
 		}
 
-		double t = 0;
+		float t = 0;
 		for (int i = 0; i < 14; i++) //calculate gasses
 		{
 			t += ratio[i];
@@ -398,6 +412,7 @@ int initalize()
 		commandio();
 	}
 	handle_control_rod_efficiency();
+	handle_control_rod_integrity();
 	return 0;
 }
 
@@ -479,6 +494,7 @@ void commandio()
 					{
 						std::cout << "saved" << std::endl;
 						handle_control_rod_efficiency();
+						handle_control_rod_integrity();
 						rodedit = 0;
 					}
 					if (command == "view")
@@ -558,7 +574,7 @@ void commandio()
 					std::cin >> command;
 					if (command == "save")
 					{
-						double t = 0;
+						float t = 0;
 						for (int i = 0; i < 14; i++)
 						{
 							t += ratio[i];
@@ -578,7 +594,7 @@ void commandio()
 					}
 					if (command == "view")
 					{
-						double t = 0;
+						float t = 0;
 						for (int i = 0; i < 14; i++)
 						{
 							t += ratio[i];
@@ -738,6 +754,7 @@ void commandio()
 							total_polls = 0;
 							for (int i = 0; i < polling_count; i++)
 							{
+								roddeps[i] = 0;
 								temps[i] = 0;
 								powers[i] = 0;
 							}
@@ -754,14 +771,24 @@ void commandio()
 							std::cout << "sample: " << i + 1 << std::endl;
 							std::cout << "heat: " << temps[i] << std::endl;
 							std::cout << "power: " << powers[i] << std::endl;
+							std::cout << "depletion %: " << roddeps[i] << std::endl;
 						}
 					}
 					if (command == "save")
 					{
+						rod_lifetime = -1;
+						rod_lifetime_max = -1;
+						roddep_last = 0;
+						rod_last = control_rod_integrity;
+						temperature_delta_min = 0;
+						temperature_delta_max = -80085;
+						cooling_peak = 0;
+						heating_peak = 0;
 						polls = 0;
 						total_polls = 0;
 						for (int i = 0; i < polling_count; i++)
 						{
+							roddeps[i] = 0;
 							temps[i] = 0;
 							powers[i] = 0;
 						}
@@ -823,9 +850,10 @@ void process()
 	if (state != REACTOR_STATE_RUNNING || heat <= start_threshold)
 	{
 		deactivate();
+		uptime = 0;
 		return;
 	}
-
+	uptime++;
 	nucleium_power_reduction = 0;
 	total_moles = 0;
 	for (int i = 0; i < 13; i++)
@@ -833,7 +861,7 @@ void process()
 		total_moles += air1[MOL][i];
 	}
 
-	double fuel_check = ((air1[MOL][GAS_PLASMA] + air1[MOL][GAS_CONSTRICTED_PLASMA] + air1[MOL][GAS_TRITIUM]) / total_moles) * 100;
+	float fuel_check = ((air1[MOL][GAS_PLASMA] + air1[MOL][GAS_CONSTRICTED_PLASMA] + air1[MOL][GAS_TRITIUM]) / total_moles) * 100;
 	if (total_moles >= reaction_rate && fuel_check >= 12.5)
 	{
 		for (int i = 0; i < 13; i++)
@@ -918,7 +946,7 @@ void process()
 
 	input_power = (std::pow((heat / 150), 3) * input_power_modifier);
 	power_produced = base_power;
-	last_power_produced = std::max<double>(0, (power_produced * input_power) - nucleium_power_reduction);
+	last_power_produced = std::max<float>(0, (power_produced * input_power) - nucleium_power_reduction);
 	handle_reaction_rate();
 	handle_heat();
 	handle_temperature_reinforcement();
@@ -1013,7 +1041,10 @@ void handle_control_rod_efficiency()
 			control_rods_l++;
 		}
 	}
+	if (control_rods_l > 0) //mimics runtime error lmao
+	{
 	control_rod_modifier = control_rod_effectiveness_total / control_rods_l;
+	}
 	return;
 }
 
@@ -1094,13 +1125,13 @@ void handle_reaction_rate()
 
 void handle_temperature_reinforcement()
 {
-	double delta_rt_nominal = (reactor_temperature_nominal_i * reactor_temperature_modifier) - reactor_temperature_nominal;
+	float delta_rt_nominal = (reactor_temperature_nominal_i * reactor_temperature_modifier) - reactor_temperature_nominal;
 	reactor_temperature_nominal += delta_rt_nominal / 2;
-	double delta_rt_hot= (reactor_temperature_hot_i * reactor_temperature_modifier) - reactor_temperature_hot;
+	float delta_rt_hot= (reactor_temperature_hot_i * reactor_temperature_modifier) - reactor_temperature_hot;
 	reactor_temperature_hot += delta_rt_hot / 2;
-	double delta_rt_critical = (reactor_temperature_critical_i * reactor_temperature_modifier) - reactor_temperature_critical;
+	float delta_rt_critical = (reactor_temperature_critical_i * reactor_temperature_modifier) - reactor_temperature_critical;
 	reactor_temperature_critical += delta_rt_critical / 2;
-	double delta_rt_meltdown = (reactor_temperature_meltdown_i * reactor_temperature_modifier) - reactor_temperature_meltdown;
+	float delta_rt_meltdown = (reactor_temperature_meltdown_i * reactor_temperature_modifier) - reactor_temperature_meltdown;
 	reactor_temperature_meltdown += delta_rt_meltdown / 2;
 	return;
 }
@@ -1200,22 +1231,36 @@ void display()
 	std::cout << std::endl
 		<< "STORMDRIVE 1000 STATS:" << std::endl
 		<< std::endl
+		<< "UP TIME: " << uptime << "s" << std::endl
+		<< std::endl
 		<< "Temperature: " << heat << "C" << std::endl
-		<< "Temperature mean avg: " << temp_avg << "C" << std::endl
+		<< "Temperature mean avg (horribly done): " << temp_avg << "C" << std::endl
 		<< "Temperature Nominal: " << reactor_temperature_nominal << "C" << std::endl
 		<< "Temperature Hot: " << reactor_temperature_hot << "C" << std::endl
 		<< "Temperature Critical: " << reactor_temperature_critical << "C" << std::endl
 		<< "Temperature Meltdown:" << reactor_temperature_meltdown << "C" << std::endl
+		<< "Temperature peak: " << temp_peak << "C" << std::endl
+		<< "Meltdown delta peak: " << (temp_peak - reactor_temperature_meltdown) << "C" << std::endl
+		<< "Critical delta peak: " << (temp_peak - reactor_temperature_critical) << "C" << std::endl
 		<< std::endl
-		<< "Target Heat (plus some math): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl
-		<< "Heat Gain: " << heat_gain << std::endl
-		<< "Cooling: " << (cooling_power * cooling_power_modifier) << std::endl
+		<< "Target Heat: " << target_heat << std::endl
+		<< "Target Heat (plus some math (both of these are sorta silly): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl
+		<< "Heat Gain: " << heat_gain << "C" << std::endl 
+		<< "Cooling: " << (cooling_power * cooling_power_modifier) << "C" << std::endl
+		<< "Temperature delta: " << heat_gain - (cooling_power * cooling_power_modifier) << "C" << std::endl
+		<< "Temperature delta Max, Min: " << temperature_delta_max << "C" << " " << temperature_delta_min << "C" << std::endl
+		<< "Heat Gain Peak: " << heating_peak << "C" << std::endl
+		<< "Cooling Peak: " << cooling_peak << "C" << std::endl
 		<< std::endl
 		<< "Power Output: " << last_power_produced << "W " << last_power_produced / 1000000 << "MW" << std::endl
-		<< "Power Output mean avg: " << power_avg << "W " << power_avg / 1000000 << "MW" << std::endl
+		<< "Power Output mean avg (horribly done): " << power_avg << "W " << power_avg / 1000000 << "MW" << std::endl
+		<< "Power Output peak: " << power_peak << "W " << power_peak / 1000000 << "MW" << std::endl
 		<< std::endl
 		<< "Rod Insertion: " << control_rod_percent << "%" << std::endl
-		<< "Rod Depletion (avg): " << control_rod_integrity << "%" << std::endl
+		<< "Rod Integrity (avg between all rods): " << control_rod_integrity << "%" << std::endl
+		<< "Rod depletion per second (avg (still bad)): " << dep_avg << "%" << std::endl
+		<< "Hypothetical Total Rod Lifetime: " << rod_lifetime_max << "s" << std::endl
+		<< "Hypothetical Current Rod Lifetime: " << rod_lifetime << "s" << std::endl
 		<< std::endl
 		<< "Reaction Rate: " << reaction_rate << "mol/s" << std::endl
 		<< std::endl
@@ -1318,6 +1363,9 @@ void getavg()
 	{
 		return;
 	}
+	roddeps[polls] = (control_rod_integrity - rod_last);
+	rod_last = control_rod_integrity;
+	roddep_last = roddeps[polls];
 	temps[polls] = heat; //poll for power and heat
 	powers[polls] = last_power_produced;
 	if (polls == polling_count - 1) //reset index so we DONT FUCKING INDEX OUT OF BOUNDS
@@ -1332,19 +1380,62 @@ void getavg()
 	{
 		total_polls = polls;
 	}
-	double sumtemp = 0;
-	double sumpower = 0;
-	double polldif = polling_count - total_polls;
+	float sumtemp = 0;
+	float sumpower = 0;
+	float sumdeps = 0;
+	float polldif = polling_count - total_polls;
 	if (polldif == polling_count)
 	{
 		polldif = polling_count - 1; //NO DIVIDING BY ZERO!!!!! >:(
 	}
 	for (int i = 0; i < polling_count - polldif; i++) //math time
 	{
+		sumdeps += roddeps[i];
 		sumtemp += temps[i];
 		sumpower += powers[i];
 	}
+	dep_avg = sumdeps / (polling_count - polldif);
 	temp_avg = sumtemp / (polling_count - polldif);
 	power_avg = sumpower / (polling_count - polldif);
+	if((-dep_avg) > 0)
+	{
+		rod_lifetime_max = 100/(-dep_avg);
+	}
+	else
+	{
+		rod_lifetime_max = -1;
+	}
+	if((-dep_avg) > 0)
+	{
+		rod_lifetime = control_rod_integrity/(-dep_avg);
+	}
+	else
+	{
+		rod_lifetime = -1;
+	}
+	if(temp_peak < heat)
+	{
+		temp_peak = heat;
+	}
+	if(power_peak < last_power_produced)
+	{
+		power_peak = last_power_produced;
+	}
+	if(heating_peak < heat_gain)
+	{
+		heating_peak = heat_gain;
+	}
+	if(cooling_peak <=(cooling_power * cooling_power_modifier))
+	{
+		cooling_peak = (cooling_power * cooling_power_modifier);
+	}
+	if((temperature_delta_max < (heat_gain - (cooling_power * cooling_power_modifier))))
+	{
+		temperature_delta_max = (heat_gain - (cooling_power * cooling_power_modifier));
+	}
+	if(temperature_delta_min > (heat_gain - (cooling_power * cooling_power_modifier)))
+	{
+		temperature_delta_min = (heat_gain - (cooling_power * cooling_power_modifier));
+	}
 	return;
 }
