@@ -1243,8 +1243,8 @@ void display()
 		<< "Meltdown delta peak: " << (temp_peak - reactor_temperature_meltdown) << "C" << std::endl
 		<< "Critical delta peak: " << (temp_peak - reactor_temperature_critical) << "C" << std::endl
 		<< std::endl
-		<< "Target Heat: " << target_heat << std::endl
-		<< "Target Heat (plus some math (both of these are sorta silly): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << std::endl
+		<< "Target Heat: " << target_heat << "C" << std::endl
+		<< "Target Heat (plus some math (both of these are sorta silly): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << "C" << std::endl
 		<< "Heat Gain: " << heat_gain << "C" << std::endl 
 		<< "Cooling: " << (cooling_power * cooling_power_modifier) << "C" << std::endl
 		<< "Temperature delta: " << heat_gain - (cooling_power * cooling_power_modifier) << "C" << std::endl
