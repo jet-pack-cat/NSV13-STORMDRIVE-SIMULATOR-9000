@@ -226,11 +226,19 @@ float roddeps[200] = {}; //ROD DEPLETION STATS :)
 float power_avg = 0;
 float power_peak = 0;
 float powers[200] = {0}; //power
-float uptime = 0;
+int uptime = 0;
+int upseconds = 0;
+int uphours = 0;
+int upminutes = 0;
+int skip = 0;
+int skipcount = 0;
+int skipmax = 0;
 int polling_count = 200;
 int polls = 0;
 int total_polls = 0;
 void getavg();
+int display_enable = 1;
+int display_clear = 1;
 int main()
 {
 
@@ -241,11 +249,40 @@ int main()
 
 	while (GAMESTATE == RUNNING)
 	{
-		std::system("cls");
-		process();
-		display();
-		commandio();
-		Sleep(speed);
+		if (skip == 0)
+		{
+			if (display_clear == 1)
+			{
+				std::system("cls");
+			}
+				process();
+			if (display_enable == 1)
+			{
+				display();
+			}
+			else
+			{
+				std::cout <<"UP TIME: " << uptime << "s" << std::endl 
+				<<"UP TIME Hrs:Mins:S: " << uphours << ":" << upminutes << ":" << upseconds << std::endl 
+				<< "integrity: " << control_rod_integrity << "%" << std::endl;
+			}
+			commandio();
+			if (speed > 0)
+			{
+				Sleep(speed);
+			}
+		}
+		else
+		{
+			process();
+			if(skipcount >= skipmax)
+			{
+				display_enable = 1;
+				display_clear = 1;
+				skip = 0;
+			}
+			skipcount++;
+		}
 	}
 
 	std::cout << "process halted" << std::endl;
@@ -440,7 +477,24 @@ void commandio()
 					<< std::endl << "fire: shoots level 3 pa blast"
 					<< std::endl << "speed: sim speed"
 					<< std::endl << "close: close command prompt"
+					<< std::endl << "skip: skip forward in time"
+					<< std::endl << "display: toggles display, disabling increases speed"
+					<< std::endl << "displayclear: toggles display clearing, disabling increases speed at the cost of your vision"
 					<< std::endl << "polledit: setup averages polling or reset" << std::endl;
+			}
+			if (command == "display")
+			{
+				std::cout << std::endl << "display toggled" << std::endl;
+				display_enable = !display_enable;
+				loop = 0;
+				return;
+			}
+			if (command == "displayclear")
+			{
+				std::cout << std::endl << "display clear toggled" << std::endl;
+				display_clear = !display_clear;
+				loop = 0;
+				return;
 			}
 			if (command == "close")
 			{
@@ -476,8 +530,19 @@ void commandio()
 			}
 			if (command == "speed")
 			{
-				std::cout << std::endl << "speed in ms (default 1000): ";
+				std::cout << std::endl << "speed in ms default 1000: ";
 				std::cin >> speed;
+				std::cout << std::endl;
+				loop = 0;
+			}
+			if (command == "skip")
+			{
+				std::cout << std::endl << "How many seconds to skip: ";
+				std::cin >> skipmax;
+				display_enable = 0;
+				display_clear = 0;
+				skipcount = 0;
+				skip = 1;
 				std::cout << std::endl;
 				loop = 0;
 			}
@@ -839,7 +904,10 @@ void try_start()
 
 void process()
 {
-	std::cout << "Alarms: " << std::endl;
+	if(display_enable == 1)
+	{
+		std::cout << "Alarms: " << std::endl;
+	}
 	handle_meltdown(); 
 	if (state == REACTOR_STATE_MELTDOWN)
 	{
@@ -854,6 +922,10 @@ void process()
 		return;
 	}
 	uptime++;
+	upseconds = ((uptime % 60) % 60);
+	upminutes = ((uptime - upseconds)/60) % 60;
+	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
+	
 	nucleium_power_reduction = 0;
 	total_moles = 0;
 	for (int i = 0; i < 13; i++)
@@ -920,7 +992,10 @@ void process()
 
 		if (total_moles > ((reaction_rate * 12) + 20))
 		{
-			std::cout << "Losing stability! Too many input mols! Maximum: " << ((reaction_rate * 12) + 20) << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Losing stability! Too many input mols! Maximum: " << ((reaction_rate * 12) + 20) << std::endl;
+			}
 			reactor_stability -= 0.51;
 		}
 
@@ -933,13 +1008,22 @@ void process()
 		}
 		else
 		{
-			std::cout << "Losing stability! Fuel ratio below 25%!" << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Losing stability! Fuel ratio below 25%!" << std::endl;
+			}
 			reactor_stability -= 0.01;
 		}
 	}
 	else
 	{
-		std::cout << "Losing stability! Out of fuel!" << std::endl;
+		if(display_enable == 1)
+		{
+			if(display_enable == 1)
+			{
+			std::cout << "Losing stability! Out of fuel!" << std::endl;
+			}
+		}
 		reactor_stability--;
 		heat_gain = -5;
 	}
@@ -955,7 +1039,13 @@ void process()
 
 	if (last_power_produced > 3000000)
 	{
-		std::cout << "Power Output High!" << std::endl;
+		if(display_enable == 1)
+		{
+			if(display_enable == 1)
+			{
+			std::cout << "Power Output High!" << std::endl;
+			}
+		}
 		handle_overload();
 		//get a grounding rod
 	}
@@ -986,7 +1076,10 @@ bool can_cool()
 		control_rod_integrity = 0;
 		if (state == REACTOR_STATE_RUNNING)
 		{
-			std::cout << "Reactor control rods have failed!" << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Reactor control rods have failed!" << std::endl;
+			}
 		}
 		return false;
 	}
@@ -994,7 +1087,10 @@ bool can_cool()
 	{
 		if (state == REACTOR_STATE_RUNNING)
 		{
-			std::cout << "Reactor control rods failing!" << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Reactor control rods failing!" << std::endl;
+			}
 		}
 	}
 	if (control_rod_integrity > 0)
@@ -1080,7 +1176,10 @@ void handle_control_rod_integrity()
 void handle_heat()
 {
 	heat += heat_gain;
-	std::cout << "Are we cooling?: ";
+	if(display_enable == 1)
+	{
+		std::cout << "Are we cooling?: ";
+	}
 	target_heat = (-1) + (std::pow(2, (0.1 * ((100 - control_rod_percent) * control_rod_modifier))));
 	if (heat > target_heat + ((cooling_power * cooling_power_modifier) - heat_gain))
 	{
@@ -1091,26 +1190,41 @@ void handle_heat()
 				heat -= cooling_power * cooling_power_modifier;
 				if (heat_gain >= cooling_power * cooling_power_modifier)
 				{
-					std::cout << "Cooling lower than heat gain!" << std::endl;
+					if(display_enable == 1)
+					{
+						std::cout << "Cooling lower than heat gain!" << std::endl;
+					}
 				}
 				else 
 				{
-					std::cout << "Cooling" << std::endl;
+					if(display_enable == 1)
+					{
+						std::cout << "Cooling" << std::endl;
+					}
 				}
 			}
 			else
 			{
+				if(display_enable == 1)
+				{
 				std::cout << "Not cooling (Rod Percent)"  << std::endl;
+				}
 			}
 		}
 		else
 		{
-			std::cout << "Not cooling (Rod Integrity)" <<  std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Not cooling (Rod Integrity)" <<  std::endl;
+			}
 		}
 	}
 	else
 	{
-		std::cout << "Not cooling (Heat Below Target + Power)" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Not cooling (Heat Below Target + Power)" << std::endl;
+		}
 	}
 	return;
 }
@@ -1149,7 +1263,10 @@ void handle_reactor_stability()
 
 	if (rand() % 101 < ((100 - reactor_stability) / 3))
 	{
-		std::cout << "Gravitational Pulse Detected!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Gravitational Pulse Detected!" << std::endl;
+		}
 		//gravity haha
 	}
 
@@ -1159,12 +1276,18 @@ void handle_reactor_stability()
 		{
 			if (rand() % 101 < 50)
 			{
-				std::cout << "Heat Destabilizing!" << std::endl;
+				if(display_enable == 1)
+				{
+					std::cout << "Heat Destabilizing!" << std::endl;
+				}
 				heat += reaction_rate * (rand() % 3 + 5);
 			}
 			else 
 			{
-				std::cout << "Reaction Rate Destabilizing!" << std::endl;
+				if(display_enable == 1)
+				{
+					std::cout << "Reaction Rate Destabilizing!" << std::endl;
+				}
 				reaction_rate += reaction_rate / (rand() % 2 + 3);
 			}
 		}
@@ -1172,10 +1295,16 @@ void handle_reactor_stability()
 
 	if (reactor_stability < 15)
 	{
-		std::cout << "ANOMALY WARNING!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "ANOMALY WARNING!" << std::endl;
+		}
 		if (rand() % 101 < 1)
 		{
-			std::cout << "ANOMALY DETECTED!" << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "ANOMALY DETECTED!" << std::endl;
+			}
 			//john anomaly
 		}
 		reactor_stability += 15;
@@ -1183,31 +1312,49 @@ void handle_reactor_stability()
 
 	if (reactor_stability <= 1)
 	{
-		std::cout << "heat rising 1C/s due to low stability!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "heat rising 1C/s due to low stability!" << std::endl;
+		}
 		heat += 1;
 	}
 	if (reactor_stability <= 15 && reactor_stability > 1)
 	{
-		std::cout << "heat rising 0.5C/s due to low stability!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "heat rising 0.5C/s due to low stability!" << std::endl;
+		}
 		heat += 0.5;
 	}
 	if (reactor_stability <= 30 && reactor_stability > 15)
 	{
-		std::cout << "heat rising 0.1C/s due to low stability!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "heat rising 0.1C/s due to low stability!" << std::endl;
+		}
 		heat += 0.1;
 	}
 	if (reactor_stability <=  75 && reactor_stability > 30)
 	{
-		std::cout << "heat rising 0.01C/s due to low stability!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "heat rising 0.01C/s due to low stability!" << std::endl;
+		}
 		heat += 0.01;
 	}
 	if (reactor_stability <= 50 && reactor_stability > 325)
 	{
-		std::cout << "Reactor hunger bar at half!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Reactor hunger bar at half!" << std::endl;
+		}
 	}
 	if (reactor_stability <= 25)
 	{
-		std::cout << "REACTOR NEEDS FLESH!!!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "REACTOR NEEDS FLESH!!!" << std::endl;
+		}
 	}
 	return;
 }
@@ -1228,48 +1375,52 @@ void display()
 {
 	//this is where all the reactor stats should be displayed :)
 	getavg();
-	std::cout << std::endl
-		<< "STORMDRIVE 1000 STATS:" << std::endl
-		<< std::endl
-		<< "UP TIME: " << uptime << "s" << std::endl
-		<< std::endl
-		<< "Temperature: " << heat << "C" << std::endl
-		<< "Temperature mean avg (horribly done): " << temp_avg << "C" << std::endl
-		<< "Temperature Nominal: " << reactor_temperature_nominal << "C" << std::endl
-		<< "Temperature Hot: " << reactor_temperature_hot << "C" << std::endl
-		<< "Temperature Critical: " << reactor_temperature_critical << "C" << std::endl
-		<< "Temperature Meltdown:" << reactor_temperature_meltdown << "C" << std::endl
-		<< "Temperature peak: " << temp_peak << "C" << std::endl
-		<< "Meltdown delta peak: " << (temp_peak - reactor_temperature_meltdown) << "C" << std::endl
-		<< "Critical delta peak: " << (temp_peak - reactor_temperature_critical) << "C" << std::endl
-		<< std::endl
-		<< "Target Heat: " << target_heat << "C" << std::endl
-		<< "Target Heat (plus some math (both of these are sorta silly): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << "C" << std::endl
-		<< "Heat Gain: " << heat_gain << "C" << std::endl 
-		<< "Cooling: " << (cooling_power * cooling_power_modifier) << "C" << std::endl
-		<< "Temperature delta: " << heat_gain - (cooling_power * cooling_power_modifier) << "C" << std::endl
-		<< "Temperature delta Max, Min: " << temperature_delta_max << "C" << " " << temperature_delta_min << "C" << std::endl
-		<< "Heat Gain Peak: " << heating_peak << "C" << std::endl
-		<< "Cooling Peak: " << cooling_peak << "C" << std::endl
-		<< std::endl
-		<< "Power Output: " << last_power_produced << "W " << last_power_produced / 1000000 << "MW" << std::endl
-		<< "Power Output mean avg (horribly done): " << power_avg << "W " << power_avg / 1000000 << "MW" << std::endl
-		<< "Power Output peak: " << power_peak << "W " << power_peak / 1000000 << "MW" << std::endl
-		<< std::endl
-		<< "Rod Insertion: " << control_rod_percent << "%" << std::endl
-		<< "Rod Integrity (avg between all rods): " << control_rod_integrity << "%" << std::endl
-		<< "Rod depletion per second (avg (still bad)): " << dep_avg << "%" << std::endl
-		<< "Hypothetical Total Rod Lifetime: " << rod_lifetime_max << "s" << std::endl
-		<< "Hypothetical Current Rod Lifetime: " << rod_lifetime << "s" << std::endl
-		<< std::endl
-		<< "Reaction Rate: " << reaction_rate << "mol/s" << std::endl
-		<< std::endl
-		<< "Stability: " << reactor_stability << "%" << std::endl
-		<< std::endl
-		<< "Fuel Mols: " << total_moles << std::endl
-		<< std::endl
-		<< "Radiation: " << radiation << std::endl
-		<< std::endl;
+	if(display_enable == 1)
+	{
+		std::cout << std::endl
+			<< "STORMDRIVE 1000 STATS:" << std::endl
+			<< std::endl
+			<< "UP TIME: " << uptime << "s" << std::endl
+			<<"UP TIME Hrs:Mins:S: " << uphours << ":" << upminutes << ":" << upseconds << std::endl 
+			<< std::endl
+			<< "Temperature: " << heat << "C" << std::endl
+			<< "Temperature mean avg (horribly done): " << temp_avg << "C" << std::endl
+			<< "Temperature Nominal: " << reactor_temperature_nominal << "C" << std::endl
+			<< "Temperature Hot: " << reactor_temperature_hot << "C" << std::endl
+			<< "Temperature Critical: " << reactor_temperature_critical << "C" << std::endl
+			<< "Temperature Meltdown:" << reactor_temperature_meltdown << "C" << std::endl
+			<< "Temperature peak: " << temp_peak << "C" << std::endl
+			<< "Meltdown delta peak: " << (temp_peak - reactor_temperature_meltdown) << "C" << std::endl
+			<< "Critical delta peak: " << (temp_peak - reactor_temperature_critical) << "C" << std::endl
+			<< std::endl
+			<< "Target Heat: " << target_heat << "C" << std::endl
+			<< "Target Heat (plus some math (both of these are sorta silly): " << (target_heat + ((cooling_power * cooling_power_modifier) - heat_gain)) << "C" << std::endl
+			<< "Heat Gain: " << heat_gain << "C" << std::endl 
+			<< "Cooling: " << (cooling_power * cooling_power_modifier) << "C" << std::endl
+			<< "Temperature delta: " << heat_gain - (cooling_power * cooling_power_modifier) << "C" << std::endl
+			<< "Temperature delta Max, Min: " << temperature_delta_max << "C" << " " << temperature_delta_min << "C" << std::endl
+			<< "Heat Gain Peak: " << heating_peak << "C" << std::endl
+			<< "Cooling Peak: " << cooling_peak << "C" << std::endl
+			<< std::endl
+			<< "Power Output: " << last_power_produced << "W " << last_power_produced / 1000000 << "MW" << std::endl
+			<< "Power Output mean avg (horribly done): " << power_avg << "W " << power_avg / 1000000 << "MW" << std::endl
+			<< "Power Output peak: " << power_peak << "W " << power_peak / 1000000 << "MW" << std::endl
+			<< std::endl
+			<< "Rod Insertion: " << control_rod_percent << "%" << std::endl
+			<< "Rod Integrity (avg between all rods): " << control_rod_integrity << "%" << std::endl
+			<< "Rod depletion per second (avg (still bad)): " << dep_avg << "%" << std::endl
+			<< "Hypothetical Total Rod Lifetime: " << rod_lifetime_max << "s" << std::endl
+			<< "Hypothetical Current Rod Lifetime: " << rod_lifetime << "s" << std::endl
+			<< std::endl
+			<< "Reaction Rate: " << reaction_rate << "mol/s" << std::endl
+			<< std::endl
+			<< "Stability: " << reactor_stability << "%" << std::endl
+			<< std::endl
+			<< "Fuel Mols: " << total_moles << std::endl
+			<< std::endl
+			<< "Radiation: " << radiation << std::endl
+			<< std::endl;
+	}
 	return;
 }
 
@@ -1277,24 +1428,33 @@ void handle_overload()
 {
 	if (last_power_produced >= 3000000 && last_power_produced <= 8000000)
 	{
-		std::cout << "Annoying light flicker!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Annoying light flicker!" << std::endl;
+		}
 	}
 	if (last_power_produced >= 8000000 && last_power_produced <= 12000000)
 	{
-		std::cout << "Annoying light flicker!" << std::endl;
-		std::cout << "Annoying light burnout!" << std::endl;
-		std::cout << "Telsa Zap Warning!" << std::endl;
-		std::cout << "Stability Decreasing Due to Power!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Annoying light flicker!" << std::endl;
+			std::cout << "Annoying light burnout!" << std::endl;
+			std::cout << "Telsa Zap Warning!" << std::endl;
+			std::cout << "Stability Decreasing Due to Power!" << std::endl;
+		}
 		if (rand() % 101 < 0.02) {
 			reactor_stability -= std::rand() % 5 + 5;
 		}
 	}
 	if (last_power_produced >= 12000000)
 	{
-		std::cout << "Annoying light flicker!" << std::endl;
-		std::cout << "Annoying light burnout!" << std::endl;
-		std::cout << "Telsa Zap Warning!" << std::endl;
-		std::cout << "Stability Decreasing Due to Power!" << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "Annoying light flicker!" << std::endl;
+			std::cout << "Annoying light burnout!" << std::endl;
+			std::cout << "Telsa Zap Warning!" << std::endl;
+			std::cout << "Stability Decreasing Due to Power!" << std::endl;
+		}
 		if (rand() % 101 < 0.2) {
 			reactor_stability -= std::rand() % 10 + 10;
 		}
@@ -1309,7 +1469,10 @@ void handle_meltdown()
 		if (heat <= reactor_temperature_critical)
 		{
 			warning_state = 0;
-			std::cout << "Nuclear Meltdown Averted" << std::endl << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "Nuclear Meltdown Averted" << std::endl << std::endl;
+			}
 			reactor_end_times = false;
 			meltdowntimer = 19;
 		}
@@ -1317,7 +1480,10 @@ void handle_meltdown()
 	if (heat >= reactor_temperature_critical)
 	{
 		warning_state = WARNING_STATE_OVERHEAT;
-		std::cout << "NUCLEAR MELTDOWN IMMINENT!!!" << std::endl << std::endl;
+		if(display_enable == 1)
+		{
+			std::cout << "NUCLEAR MELTDOWN IMMINENT!!!" << std::endl << std::endl;
+		}
 	}
 	if (heat >= reactor_temperature_meltdown)
 	{
@@ -1335,7 +1501,10 @@ void handle_meltdown()
 					handle_control_rod_efficiency();
 				}
 			}
-			std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << std::endl;
+			if(display_enable == 1)
+			{
+				std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << std::endl;
+			}
 			reactor_end_times = true;
 			meltdowntimer--;
 			std::cout << "MELTDOWN T-: " << meltdowntimer << std::endl << std::endl;
@@ -1399,7 +1568,7 @@ void getavg()
 	power_avg = sumpower / (polling_count - polldif);
 	if((-dep_avg) > 0)
 	{
-		rod_lifetime_max = 100/(-dep_avg);
+		rod_lifetime_max = (100/(-dep_avg));
 	}
 	else
 	{
@@ -1407,7 +1576,7 @@ void getavg()
 	}
 	if((-dep_avg) > 0)
 	{
-		rod_lifetime = control_rod_integrity/(-dep_avg);
+		rod_lifetime = (control_rod_integrity/(-dep_avg));
 	}
 	else
 	{
