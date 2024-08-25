@@ -230,6 +230,7 @@ int uptime = 0;
 int upseconds = 0;
 int uphours = 0;
 int upminutes = 0;
+int loop = 0;
 int skip = 0;
 int skipcount = 0;
 int skipmax = 0;
@@ -255,13 +256,22 @@ int main()
 			{
 				std::system("cls");
 			}
-				process();
+			process();
 			if (display_enable == 1)
 			{
 				display();
 			}
 			else
 			{
+				getavg();
+				if((heat >= reactor_temperature_meltdown))
+				{
+					display_enable = 1;
+					display_clear = 1;
+					std::cout <<"MELTDOWN NEXT PROCESS!!!"<< std::endl << std::endl;
+					loop = 1;
+					display();
+				}
 				std::cout <<"UP TIME: " << uptime << "s" << std::endl 
 				<<"UP TIME Hrs:Mins:S: " << uphours << ":" << upminutes << ":" << upseconds << std::endl 
 				<< "integrity: " << control_rod_integrity << "%" << std::endl;
@@ -275,11 +285,21 @@ int main()
 		else
 		{
 			process();
-			if(skipcount >= skipmax)
+			getavg();
+			if((skipcount >= skipmax) || (heat >= reactor_temperature_meltdown) || (state == REACTOR_STATE_IDLE)) //:)
 			{
 				display_enable = 1;
 				display_clear = 1;
+				skipmax = 0;
+				skipcount = 0;
 				skip = 0;
+				if((heat >= reactor_temperature_meltdown))
+				{
+					std::cout <<"MELTDOWN NEXT PROCESS!!!"<< std::endl;
+					loop = 1;
+					display();
+					commandio();
+				}
 			}
 			skipcount++;
 		}
@@ -458,9 +478,9 @@ void commandio()
 	std::string command;
 
 
-	if (GetAsyncKeyState(VK_ESCAPE))
+	if (GetAsyncKeyState(VK_ESCAPE) || (loop == 1))
 	{
-		int loop = 1;
+		loop = 1;
 		while (loop == 1)
 		{
 			std::cout << "COMMAND: ";
@@ -545,6 +565,7 @@ void commandio()
 				skip = 1;
 				std::cout << std::endl;
 				loop = 0;
+				std::system("cls");
 			}
 			if (command == "rodedit")
 			{
@@ -838,6 +859,7 @@ void commandio()
 							std::cout << "power: " << powers[i] << std::endl;
 							std::cout << "depletion %: " << roddeps[i] << std::endl;
 						}
+						std::cout << "last sample # " << (polls + 1) << std::endl;
 					}
 					if (command == "save")
 					{
@@ -1276,18 +1298,12 @@ void handle_reactor_stability()
 		{
 			if (rand() % 101 < 50)
 			{
-				if(display_enable == 1)
-				{
-					std::cout << "Heat Destabilizing!" << std::endl;
-				}
+				std::cout << "Heat Destabilizing!" << std::endl;
 				heat += reaction_rate * (rand() % 3 + 5);
 			}
 			else 
 			{
-				if(display_enable == 1)
-				{
-					std::cout << "Reaction Rate Destabilizing!" << std::endl;
-				}
+				std::cout << "Reaction Rate Destabilizing!" << std::endl;
 				reaction_rate += reaction_rate / (rand() % 2 + 3);
 			}
 		}
@@ -1312,34 +1328,22 @@ void handle_reactor_stability()
 
 	if (reactor_stability <= 1)
 	{
-		if(display_enable == 1)
-		{
-			std::cout << "heat rising 1C/s due to low stability!" << std::endl;
-		}
+		std::cout << "heat rising 1C/s due to low stability!" << std::endl;
 		heat += 1;
 	}
 	if (reactor_stability <= 15 && reactor_stability > 1)
 	{
-		if(display_enable == 1)
-		{
-			std::cout << "heat rising 0.5C/s due to low stability!" << std::endl;
-		}
+		std::cout << "heat rising 0.5C/s due to low stability!" << std::endl;
 		heat += 0.5;
 	}
 	if (reactor_stability <= 30 && reactor_stability > 15)
 	{
-		if(display_enable == 1)
-		{
-			std::cout << "heat rising 0.1C/s due to low stability!" << std::endl;
-		}
+		std::cout << "heat rising 0.1C/s due to low stability!" << std::endl;
 		heat += 0.1;
 	}
 	if (reactor_stability <=  75 && reactor_stability > 30)
 	{
-		if(display_enable == 1)
-		{
-			std::cout << "heat rising 0.01C/s due to low stability!" << std::endl;
-		}
+		std::cout << "heat rising 0.01C/s due to low stability!" << std::endl;
 		heat += 0.01;
 	}
 	if (reactor_stability <= 50 && reactor_stability > 325)
@@ -1444,6 +1448,7 @@ void handle_overload()
 		}
 		if (rand() % 101 < 0.02) {
 			reactor_stability -= std::rand() % 5 + 5;
+			std::cout << "Stability FUCKED! (tesla zap)" << std::endl;
 		}
 	}
 	if (last_power_produced >= 12000000)
@@ -1457,6 +1462,7 @@ void handle_overload()
 		}
 		if (rand() % 101 < 0.2) {
 			reactor_stability -= std::rand() % 10 + 10;
+			std::cout << "Stability FUCKED! (tesla zap)" << std::endl;
 		}
 	}
 	return;
@@ -1489,6 +1495,7 @@ void handle_meltdown()
 	{
 		if (warning_state < WARNING_STATE_MELTDOWN)
 		{
+			std::cout << "LAST ROD INTEGRITY BEFORE MELTDOWN: " << control_rod_integrity << "%" << std::endl;
 			for (int i = 0; i < 5; i++)
 			{
 				if (control_rods_t[i] != ROD_NONE) //dont touch rods that dont exist
@@ -1501,10 +1508,7 @@ void handle_meltdown()
 					handle_control_rod_efficiency();
 				}
 			}
-			if(display_enable == 1)
-			{
-				std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << std::endl;
-			}
+			std::cout << "ERROR IN MODULE FISSREAC0 AT ADDRESS 0x12DF. CONTROL RODS HAVE FAILED.IMMEDIATE INTERVENTION REQUIRED." << "\a" << std::endl;
 			reactor_end_times = true;
 			meltdowntimer--;
 			std::cout << "MELTDOWN T-: " << meltdowntimer << std::endl << std::endl;
