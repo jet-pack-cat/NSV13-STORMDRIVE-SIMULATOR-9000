@@ -205,7 +205,9 @@ int initalize();
 void process();
 void commandio();
 void display();
-int speed = 1000;
+bool can_cool();
+void handle_overload();
+int speed = 2000;
 void handle_overload();
 int meltdowntimer = 19;
 void handle_meltdown();
@@ -550,7 +552,7 @@ void commandio()
 			}
 			if (command == "speed")
 			{
-				std::cout << std::endl << "speed in ms default 1000: ";
+				std::cout << std::endl << "speed in ms default 2000: ";
 				std::cin >> speed;
 				std::cout << std::endl;
 				loop = 0;
@@ -943,7 +945,7 @@ void process()
 		uptime = 0;
 		return;
 	}
-	uptime++;
+	uptime += 2; //process happens about every 2 real life seconds
 	upseconds = ((uptime % 60) % 60);
 	upminutes = ((uptime - upseconds)/60) % 60;
 	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
@@ -1055,6 +1057,7 @@ void process()
 	last_power_produced = std::max<float>(0, (power_produced * input_power) - nucleium_power_reduction);
 	handle_reaction_rate();
 	handle_heat();
+	can_cool(); //function update icon calls this too, rods decay functionally twice per process :)
 	handle_temperature_reinforcement();
 	handle_reactor_stability();
 	radiation = heat * radiation_modifer;
@@ -1568,6 +1571,7 @@ void getavg()
 		sumpower += powers[i];
 	}
 	dep_avg = sumdeps / (polling_count - polldif);
+	dep_avg = dep_avg/2; //each process is two seconds so divide by two :)
 	temp_avg = sumtemp / (polling_count - polldif);
 	power_avg = sumpower / (polling_count - polldif);
 	if((-dep_avg) > 0)
