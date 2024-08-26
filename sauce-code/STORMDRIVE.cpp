@@ -559,7 +559,7 @@ void commandio()
 			}
 			if (command == "skip")
 			{
-				std::cout << std::endl << "How many seconds to skip: ";
+				std::cout << std::endl << "How many process ticks to skip (each is two seconds): ";
 				std::cin >> skipmax;
 				display_enable = 0;
 				display_clear = 0;
