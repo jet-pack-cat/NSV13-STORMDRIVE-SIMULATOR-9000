@@ -3,7 +3,9 @@ Maybe might explode?
 who knows.
 
 just compile and run the .exe make sure the config.txt is there
-Dont input commands or numbers incorrectly or you DI
+Dont input commands or numbers incorrectly or you DIE
+
+This is my first time actually coding.
 
 commands and operands can be put on the same line to some degree.
 example:
