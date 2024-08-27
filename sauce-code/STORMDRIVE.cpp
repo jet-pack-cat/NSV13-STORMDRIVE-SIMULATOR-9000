@@ -228,20 +228,21 @@ float roddeps[200] = {}; //ROD DEPLETION STATS :)
 float power_avg = 0;
 float power_peak = 0;
 float powers[200] = {0}; //power
-int uptime = 0;
-int upseconds = 0;
-int uphours = 0;
-int upminutes = 0;
+unsigned long int uptime = 0;
+unsigned long int upseconds = 0;
+unsigned long int uphours = 0;
+unsigned long int upminutes = 0;
 int loop = 0;
 int skip = 0;
-int skipcount = 0;
-int skipmax = 0;
+unsigned long int skipcount = 0;
+unsigned long int skipmax = 0;
 int polling_count = 200;
 int polls = 0;
 int total_polls = 0;
 void getavg();
 int display_enable = 1;
 int display_clear = 1;
+int dopoll = 1;
 int main()
 {
 
@@ -265,7 +266,10 @@ int main()
 			}
 			else
 			{
-				getavg();
+				if (dopoll)
+				{
+					getavg();
+				}
 				if((heat >= reactor_temperature_meltdown))
 				{
 					display_enable = 1;
@@ -287,7 +291,14 @@ int main()
 		else
 		{
 			process();
-			getavg();
+			if(dopoll)
+			{
+				getavg();
+			}
+			if (GetAsyncKeyState(VK_ESCAPE))
+			{
+				std::cout << (skipmax - skipcount) << std::endl;
+			}
 			if((skipcount >= skipmax) || (heat >= reactor_temperature_meltdown) || (state == REACTOR_STATE_IDLE)) //:)
 			{
 				display_enable = 1;
@@ -306,7 +317,6 @@ int main()
 			skipcount++;
 		}
 	}
-
 	std::cout << "process halted" << std::endl;
 	system("pause");
 	return 0;
@@ -568,6 +578,7 @@ void commandio()
 				std::cout << std::endl;
 				loop = 0;
 				std::system("cls");
+				std::cout << std::endl << "press esc to see remaining processes: " << std::endl;
 			}
 			if (command == "rodedit")
 			{
@@ -835,8 +846,16 @@ void commandio()
 						{
 							a = 0;
 						}
-						if (a <= 200 && a > 0)
+						if (a <= 200 && a >= 0)
 						{
+							if (a == 0)
+							{
+								dopoll = 0;
+							}
+							else
+							{
+								dopoll = 1;
+							}
 							polling_count = a;
 							polls = 0;
 							total_polls = 0;
@@ -946,10 +965,12 @@ void process()
 		return;
 	}
 	uptime += 2; //process happens about every 2 real life seconds
-	upseconds = ((uptime % 60) % 60);
-	upminutes = ((uptime - upseconds)/60) % 60;
-	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
-	
+	if(display_enable) // division and modulus very expensive holy shit
+	{
+		upseconds = ((uptime % 60) % 60);
+		upminutes = ((uptime - upseconds)/60) % 60;
+		uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
+	}
 	nucleium_power_reduction = 0;
 	total_moles = 0;
 	for (int i = 0; i < 13; i++)
@@ -1301,8 +1322,11 @@ void handle_reactor_stability()
 		{
 			if (rand() % 101 < 50)
 			{
+				float ee = 0;
 				std::cout << "Heat Destabilizing!" << std::endl;
-				heat += reaction_rate * (rand() % 3 + 5);
+				ee = reaction_rate * (rand() % 3 + 5);
+				heat += ee;
+				std::cout << ee << "C" << std::endl;
 			}
 			else 
 			{
@@ -1381,7 +1405,10 @@ void deactivate()
 void display()
 {
 	//this is where all the reactor stats should be displayed :)
-	getavg();
+	if(dopoll)
+	{
+		getavg();
+	}
 	if(display_enable == 1)
 	{
 		std::cout << std::endl
