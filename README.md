@@ -52,7 +52,7 @@ Likes to trigger windows defender, You can just read the source code within 10 m
 Ok maybe not anymore... doesn't trigger windows defender anymore for me though!
 
 
-If you want to simulate really *really* fast, set pollcount to 0, turn off display and display clear, and use skip, its unsigned long int though since every process is 2 seconds divide that by two and you have the max skip amount... not that you will be able to simulate millions of years though. Maximum reasonable time to skip is like 4 hours, which is like a milisecond, 130 years takes like 5 minutes maybe... (you arnt playing space that long)
+If you want to simulate really *really* fast, set pollcount to 0, and use skip, or turn off display and display clear and set speed to 0 depending on your purposes. Skip uses unsigned long int, though since every process is 2 seconds divide that by two and you have the max skip amount... not that you will be able to simulate millions of years though. Maximum reasonable time to skip is like 4 hours, which is like a millisecond, 130 years takes like 5 minutes maybe... (you arnt playing spessmans that long i fucking hope)
 Skip also stops when the reactor is a process tick away from meltdown, usually when the rods deplete or stability effects past 8/12mw destroy you with 90-c temp jumps from two tesla zaps.
 
 Thanks and have fun :)
