@@ -933,6 +933,7 @@ void try_start()
 		reactor_stability = 100;
 		heat = start_threshold + 10;
 		state = REACTOR_STATE_RUNNING;
+		uptime = 0;
 		if (reaction_rate <= 0)
 		{
 			reaction_rate = 5;
@@ -961,7 +962,6 @@ void process()
 	if (state != REACTOR_STATE_RUNNING || heat <= start_threshold)
 	{
 		deactivate();
-		uptime = 0;
 		return;
 	}
 	uptime += 2; //process happens about every 2 real life seconds
@@ -1124,7 +1124,7 @@ bool can_cool()
 		{
 			if(display_enable == 1)
 			{
-				std::cout << "Reactor control rods have failed!" << std::endl;
+				std::cout << "Reactor control rods have failed! ";
 			}
 		}
 		return false;
@@ -1135,7 +1135,7 @@ bool can_cool()
 		{
 			if(display_enable == 1)
 			{
-				std::cout << "Reactor control rods failing!" << std::endl;
+				std::cout << "Reactor control rods failing! "; // yes this displays twice because this function is called twice... :)
 			}
 		}
 	}
@@ -1453,6 +1453,16 @@ void display()
 			<< "Fuel Mols: " << total_moles << std::endl
 			<< std::endl
 			<< "Radiation: " << radiation << std::endl
+			<< std::endl
+			<< "Control Rod Modifier: " << control_rod_modifier << std::endl
+			<< "Input Power Modifier: " << input_power_modifier << std::endl
+			<< "Cooling Power Modifier: " << cooling_power_modifier << std::endl
+			<< "Reaction Rate Modifer: " << reaction_rate_modifier << std::endl
+			<< "Radiation Modifier: " << radiation_modifer << std::endl
+			<< "Reactor Temperature Modifier: " << reactor_temperature_modifier << std::endl
+			<< "Control Rod Modifier: " << control_rod_modifier << std::endl
+			<< "Control Rod Degradation Modifer: " << control_rod_degradation_modifier << std::endl
+			<< "Nucleium Power Reduction: " << nucleium_power_reduction << std::endl
 			<< std::endl;
 	}
 	return;
