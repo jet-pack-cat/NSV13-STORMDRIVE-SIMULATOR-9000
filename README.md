@@ -3,7 +3,7 @@ Maybe might explode?
 who knows.
 
 just compile and run the .exe make sure the config.txt is there
-Dont input commands or numbers incorrectly or you DIE
+Dont input commands or numbers incorrectly or you DIE (Not actually, just press ctrl+c to get out of infinite loops, file system is READ ONLY)
 
 This is my first time actually coding.
 
