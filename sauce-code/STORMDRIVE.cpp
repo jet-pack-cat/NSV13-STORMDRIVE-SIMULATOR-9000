@@ -892,6 +892,8 @@ void commandio()
 						temperature_delta_max = -80085;
 						cooling_peak = 0;
 						heating_peak = 0;
+						power_peak = 0;
+						dep_peak = 0;
 						polls = 0;
 						total_polls = 0;
 						for (int i = 0; i < polling_count; i++)
@@ -1399,6 +1401,9 @@ void deactivate()
 	reaction_rate = 0;
 	reactor_stability = 0;
 	state = REACTOR_STATE_IDLE;
+	upseconds = ((uptime % 60) % 60);
+	upminutes = ((uptime - upseconds)/60) % 60;
+	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
 	return;
 }
 
