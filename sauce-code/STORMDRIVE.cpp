@@ -894,6 +894,7 @@ void commandio()
 						heating_peak = 0;
 						power_peak = 0;
 						dep_peak = 0;
+						temp_peak = 0;
 						polls = 0;
 						total_polls = 0;
 						for (int i = 0; i < polling_count; i++)
