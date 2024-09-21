@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <string>
 #include <fstream>
+#include <time.h>
 
 //horrible to read, horribly programmed, design philosophy is "it just works", worst thing ever created
 
@@ -323,6 +324,7 @@ int main()
 }
 int initalize()
 {
+	srand(time(NULL));
 	//GET CONFIG
 
 	std::ifstream sdconfig;
@@ -1113,7 +1115,7 @@ bool can_cool()
 				control_rods_t[i] = ROD_IRRADIATED;
 				handle_control_rod_efficiency();
 			}
-			if ((std::rand() % 101) < (80 * control_rod_degradation_modifier))
+			if (((float)rand() / RAND_MAX) <= ((80 * control_rod_degradation_modifier) / 100))
 			{
 				control_rods_i[i] -= ((input_power / 75000) * control_rod_degradation_modifier) * control_rod_percent;
 			}
@@ -1310,7 +1312,7 @@ void handle_reactor_stability()
 		reactor_stability = 0;
 	}
 
-	if (rand() % 101 < ((100 - reactor_stability) / 3))
+	if (((float)rand() / RAND_MAX) <=  (((100 - reactor_stability) / 3)/100))
 	{
 		if(display_enable == 1)
 		{
@@ -1321,20 +1323,20 @@ void handle_reactor_stability()
 
 	if (reactor_stability < 75)
 	{
-		if (rand() % 101 < ((100 - reactor_stability) / 4))
+		if (((float)rand() / RAND_MAX) <= (((100 - reactor_stability) / 4))/100)
 		{
-			if (rand() % 101 < 50)
+			if (((float)rand() / RAND_MAX) <= 0.5)
 			{
 				float ee = 0;
 				std::cout << "Heat Destabilizing!" << std::endl;
-				ee = reaction_rate * (rand() % 3 + 5);
+				ee = reaction_rate * (std::fmod((((float)rand() / RAND_MAX) * 1000), 3) + 5);
 				heat += ee;
 				std::cout << ee << "C" << std::endl;
 			}
 			else 
 			{
 				std::cout << "Reaction Rate Destabilizing!" << std::endl;
-				reaction_rate += reaction_rate / (rand() % 2 + 3);
+				reaction_rate += reaction_rate / (std::fmod((((float)rand() / RAND_MAX) * 1000), 2) + 3);
 			}
 		}
 	}
@@ -1345,7 +1347,7 @@ void handle_reactor_stability()
 		{
 			std::cout << "ANOMALY WARNING!" << std::endl;
 		}
-		if (rand() % 101 < 1)
+		if (((float)rand() / RAND_MAX) <= 0.01)
 		{
 			if(display_enable == 1)
 			{
@@ -1492,9 +1494,11 @@ void handle_overload()
 			std::cout << "Telsa Zap Warning!" << std::endl;
 			std::cout << "Stability Decreasing Due to Power!" << std::endl;
 		}
-		if (rand() % 101 < 0.02) {
-			reactor_stability -= std::rand() % 5 + 5;
-			std::cout << "Stability FUCKED! (tesla zap)" << std::endl;
+		if (((float)rand() / RAND_MAX) <= 0.0002) {
+			float ee = 0;
+			ee = std::fmod((((float)rand() / RAND_MAX) * 1000), 5) + 5;
+			reactor_stability -= ee;
+			std::cout << "Stability FUCKED! (tesla zap) " << ee << std::endl;
 		}
 	}
 	if (last_power_produced >= 12000000)
@@ -1506,9 +1510,11 @@ void handle_overload()
 			std::cout << "Telsa Zap Warning!" << std::endl;
 			std::cout << "Stability Decreasing Due to Power!" << std::endl;
 		}
-		if (rand() % 101 < 0.2) {
-			reactor_stability -= std::rand() % 10 + 10;
-			std::cout << "Stability FUCKED! (tesla zap)" << std::endl;
+		if (((float)rand() / RAND_MAX) <= 0.002) {
+			float ee = 0;
+			ee = std::fmod((((float)rand() / RAND_MAX) * 1000), 10) + 10;
+			reactor_stability -= ee;
+			std::cout << "Stability FUCKED! (tesla zap) " << ee << std::endl;
 		}
 	}
 	return;
