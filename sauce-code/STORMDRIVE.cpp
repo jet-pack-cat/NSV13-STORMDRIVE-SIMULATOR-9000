@@ -244,8 +244,18 @@ void getavg();
 int display_enable = 1;
 int display_clear = 1;
 int dopoll = 1;
+HWND windowhandle = NULL;
 int main()
 {
+	if(!(GetConsoleWindow() == NULL))
+	{
+		windowhandle = GetConsoleWindow();
+		std::cout << "Window handle: " << windowhandle << std::endl;
+	} else
+	{
+		std::cout << "could not get window handle" << std::endl;
+	}
+	
 
 	if (initalize())
 	{
@@ -296,9 +306,12 @@ int main()
 			{
 				getavg();
 			}
-			if (GetAsyncKeyState(VK_ESCAPE))
+			if (GetForegroundWindow() == windowhandle)
 			{
-				std::cout << (skipmax - skipcount) << std::endl;
+				if (GetAsyncKeyState(VK_ESCAPE))
+				{
+					std::cout << (skipmax - skipcount) << std::endl;
+				}
 			}
 			if((skipcount >= skipmax) || (heat >= reactor_temperature_meltdown) || (state == REACTOR_STATE_IDLE)) //:)
 			{
@@ -491,7 +504,10 @@ void commandio()
 {
 	std::string command;
 
-
+	if (!(GetForegroundWindow() == windowhandle))
+	{
+		return;
+	}
 	if (GetAsyncKeyState(VK_ESCAPE) || (loop == 1))
 	{
 		loop = 1;
