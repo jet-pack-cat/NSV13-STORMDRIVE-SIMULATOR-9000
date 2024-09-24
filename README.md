@@ -4,9 +4,11 @@ Maybe might explode?
 who knows.
 
 ![image](https://github.com/user-attachments/assets/41c81d90-98b8-459b-9e1b-4e1cc428e855)
+![image](https://github.com/user-attachments/assets/0089c9d0-3ecf-417e-8c66-ccf6f30ab74d)
+
 
 ___
-### PRESS ESC KEY TO OPEN THE COMMAND PROMPT!
+### PRESS ESC KEY TO OPEN THE COMMAND PROMPT! NUMPAD 9 FOR PA NUMPAD 5 TO CLEAR ALARM NUMPAD 8 TO RESET SAMPLES
 
 "help: Displays this menu" (displays help menu)
 
