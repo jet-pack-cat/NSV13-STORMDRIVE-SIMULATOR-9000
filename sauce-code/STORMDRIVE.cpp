@@ -412,6 +412,13 @@ int main()
 					display();
 				}
 			}
+			if(state >= REACTOR_STATE_RUNNING) // forgor time
+			{
+				uptime += 2;
+				upseconds = ((uptime % 60) % 60);
+				upminutes = ((uptime - upseconds)/60) % 60;
+				uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
+			}
 			skipcount++;
 		}
 	}
@@ -681,6 +688,7 @@ void commandio()
 					<< std::endl << "go: ends initalization starts program"
 					<< std::endl << "stop: Ends Program"
 					<< std::endl << "------------------"
+					<< std::endl << "clearalarms: clears alarms"
 					<< std::endl << "fueledit: lets you edit fuel ratio"
 					<< std::endl << "rodedit: lets you edit control rods"
 					<< std::endl << "rp: Rod insertion percent"
@@ -696,6 +704,48 @@ void commandio()
 			{
 				std::cout << std::endl << "display toggled" << std::endl;
 				display_enable = !display_enable;
+				loop = 0;
+				return;
+			}
+			if (command == "clearalarms")
+			{
+				start_alarm = 0;
+				fuel_overload_alarm = 0;
+				fuel_ratio_below_25_alarm = 0;
+				no_fuel_alarm = 0;
+				power_output_alarm = 0;
+				rod_fail_alarm = 0;
+				rods_below_35_alarm = 0;
+				heatgain_delta_negative_alarm = 0;
+				we_cooling_alarm = 0;
+				rod_insertion_0_alarm = 0;
+				rod_integrity_cooling_alarm = 0;
+				temperature_below_target_alarm = 0;
+				gravity_pulse_alarm = 0;
+				heat_destabilizing_alarm = 0;
+				reaction_rate_destabilizing_alarm = 0;
+				anomaly_alarm = 0;
+				anomaly_detected_alarm = 0;
+				heat_rising_1C_alarm = 0;
+				heat_rising_05C_alarm = 0;
+				heat_rising_01C_alarm = 0;
+				heat_rising_001C_alarm = 0;
+				reactor_hunger_half_alarm = 0;
+				flesh_reactor_alarm = 0;
+				light_flicker_alarm_1 = 0;
+				light_flicker_alarm_2 = 0;
+				light_burnout_alarm_1 = 0;
+				tesla_alarm_1 = 0;
+				tesla_zap_alarm_1 = 0;
+				light_flicker_alarm_3 = 0;
+				light_burnout_alarm_2 = 0;
+				tesla_alarm_2 = 0;
+				tesla_zap_alarm_2 = 0;
+				meltdown_averted_alarm = 0;
+				meltdown_critical_alarm = 0;
+				rods_exploded_alarm = 0;
+				meltdown_real_alarm = 0;
+				melted_down_alarm = 0;
 				loop = 0;
 				return;
 			}
