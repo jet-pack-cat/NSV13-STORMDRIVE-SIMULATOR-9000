@@ -34,6 +34,8 @@ ___
 
 ### "close: close command prompt" (doesn't work within other menus)
 
+"clearalarms: clears alarms"
+
 "skip: skip forward in time" (skips that amount of process ticks, every process tick is 2 seconds real time)
 
 "display: toggles display, disabling increases speed" (says what it is)
