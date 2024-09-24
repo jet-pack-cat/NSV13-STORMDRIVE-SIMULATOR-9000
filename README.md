@@ -127,5 +127,5 @@ it just runs, "g++ -O2 STORMDRIVE.cpp -o STORMDRIVE.exe"
 ![image](https://github.com/user-attachments/assets/fc68abdb-3058-445b-a42d-b34dfdb34798)
 
 ### I DONT KNOW HOW ONLINE COMPILERS WORK, YOU NEED THE windows.h LIBRARY, THIS IS A WINDOWS PROGRAM
-
+### YOU ALSO NEED WAY TOO MANY OTHER LIBRARIES
 Thanks and have fun :)
