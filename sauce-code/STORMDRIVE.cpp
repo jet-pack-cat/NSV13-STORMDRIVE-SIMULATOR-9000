@@ -327,18 +327,17 @@ int main()
 	auto next_frame = clock::now();
 	while (GAMESTATE == RUNNING)
 	{
+		next_frame += std::chrono::milliseconds(speed);
+		
+		if(state < REACTOR_STATE_RUNNING)
+		{
+			next_frame = clock::now() + std::chrono::milliseconds(speed);
+		}
+		
+		commandio(); // commands!
+		
 		if (skip == 0) // default loop
 		{
-			if(state >= REACTOR_STATE_RUNNING)
-			{
-				next_frame += std::chrono::milliseconds(speed);
-			}
-			else
-			{
-				next_frame = clock::now() + std::chrono::milliseconds(speed);
-			}
-			commandio(); // command input
-			
 			process(); // process
 			
 			if(!start_pause)
@@ -377,10 +376,10 @@ int main()
 				upseconds = ((uptime % 60) % 60);
 				upminutes = ((uptime - upseconds)/60) % 60;
 				uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
-				std::this_thread::sleep_until(next_frame);
 			}
 		}
-		else // skip enabled
+		
+		while(skip == 1) // skip loop
 		{
 			process(); // process
 			
@@ -412,14 +411,22 @@ int main()
 					display();
 				}
 			}
-			if(state >= REACTOR_STATE_RUNNING) // forgor time
+			else
+			{
+				skipcount++;
+			}
+			if(state >= REACTOR_STATE_RUNNING)
 			{
 				uptime += 2;
 				upseconds = ((uptime % 60) % 60);
 				upminutes = ((uptime - upseconds)/60) % 60;
 				uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
 			}
-			skipcount++;
+		}
+		
+		if(state >= REACTOR_STATE_RUNNING)
+		{
+			std::this_thread::sleep_until(next_frame); // keep at the end!
 		}
 	}
 	std::cout << "process halted" << std::endl;
