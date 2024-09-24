@@ -113,6 +113,10 @@ Skip also stops when the reactor is a process tick away from meltdown, usually w
 
 ### SIM SPEED EFFECTS THE TIME IT TAKES FOR COMMANDS TO TAKE EFFECT!!!!!!
 Skip may seem weirdly slow at small values, a sim speed of 2000ms (default) will have any command take 2000ms to take effect dispite how fast it may be.
+
+EXCEPT NOT NOW HAHA
+
+### IF YOU WANT TO SYNC WITH AN IN GAME REACTOR PRESS 9 AS SOON AS THE ACCELERATOR STUFF HITS THE REACTOR!, THIS WILL WORK "GOOD ENOUGH"
 ___
 ### COMPILING:
 I USE THE G++ compiler with make (so i dont have to type in commands every time)
