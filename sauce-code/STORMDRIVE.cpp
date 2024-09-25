@@ -248,7 +248,7 @@ void getavg();
 int display_enable = 1;
 int display_clear = 1;
 int dopoll = 1;
-bool start_pause = 1;
+bool start_pause = 0;
 HWND windowhandle = NULL;
 
 bool start_alarm;
@@ -317,7 +317,10 @@ bool rods_exploded_alarm;
 bool meltdown_real_alarm;
 bool melted_down_alarm;
 bool papause = 0;
-
+bool spc = 1;
+bool spe = 1;
+long int frames_skipped = 0;
+bool sp = 0;
 int main()
 {
 	if (initalize())
@@ -326,9 +329,42 @@ int main()
 	}
 	using clock = std::chrono::steady_clock;
 	auto next_frame = clock::now();
+	auto start_time = clock::now();
+	auto end_time = clock::now();
+	auto processstart_time = clock::now();
+	auto processend_time = clock::now();
 	while (GAMESTATE == RUNNING)
 	{
 		next_frame += std::chrono::milliseconds(speed);
+		start_time = clock::now();
+		if((next_frame - clock::now()).count() <= 0)
+		{
+			frames_skipped++;
+			if (!sp)
+			{
+				spc = display_clear;
+			}
+			display_clear = 0;
+			if (!sp)
+			{
+				spe = display_enable;
+			}
+			display_enable = 0;
+			sp = 1;
+		} else
+		{
+			if (!sp)
+			{
+				spe = display_enable;
+			}
+			if (!sp)
+			{
+				spe = display_enable;
+			}
+			display_clear = spc;
+			display_enable = spe;
+			sp = 0;
+		}
 		
 		if(state < REACTOR_STATE_RUNNING)
 		{
@@ -339,7 +375,9 @@ int main()
 		
 		if (skip == 0 && papause == 0) // default loop
 		{
+			processstart_time = clock::now();
 			process(); // process
+			processend_time = clock::now();
 			
 			if(start_pause == 0) //stops displaying at start so it doesn't flash
 			{
@@ -427,7 +465,26 @@ int main()
 				uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
 			}
 		}
-		
+		if (start_pause == 0 && display_enable)
+		{
+			auto diff = std::chrono::duration_cast<std::chrono::microseconds>(next_frame - clock::now()).count();
+			std::cout << "Target update speed: " << speed << " milliseconds" << std::endl;
+			std::cout << std::endl << "frames skipped: " << frames_skipped << std::endl;
+			frames_skipped = 0;
+			std::cout << "sleeping: " << diff/1000.0 << " milliseconds" << std::endl;
+			end_time = clock::now();
+			diff = (std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count());
+			std::cout << "processing + command + ect + display time: " << diff/1000.0 << " milliseconds"<< std::endl;
+			diff = (std::chrono::duration_cast<std::chrono::nanoseconds>(processend_time - processstart_time).count());
+			std::cout << "processing time: " << diff / 1000.0 << " microseconds"<< std::endl;
+		}
+		if(state < REACTOR_STATE_RUNNING)
+		{
+			start_pause = 1;
+		} else
+		{
+			start_pause = 0;
+		}
 		if(state >= REACTOR_STATE_RUNNING)
 		{
 			std::this_thread::sleep_until(next_frame); // keep at the end!
@@ -620,6 +677,14 @@ void commandio()
 	{
 		return;
 	}
+	if(GetAsyncKeyState(VK_ADD) & 1)
+	{
+		speed += 10;
+	}
+	if(GetAsyncKeyState(VK_SUBTRACT) & 1)
+	{
+		speed -= 10;
+	}
 	if (GetAsyncKeyState(VK_NUMPAD5)) // clear alarms
 	{
 		start_alarm = 0;
@@ -784,14 +849,6 @@ void commandio()
 				std::cout << std::endl << "starting" << std::endl;
 				loop = 0;
 				GAMESTATE = RUNNING;
-				if (display_clear == 1) // clear screen
-				{
-					std::system("cls");
-				}
-				if (display_enable == 1) // display screen
-				{
-					display();
-				}
 				return;
 			}
 			if (command == "fire")
@@ -1565,7 +1622,6 @@ void handle_reactor_stability()
 	if (reactor_stability <= 50 && reactor_stability > 25)
 	{
 		reactor_hunger_half_alarm = 1;
-		std::cout << "Reactor hunger bar at half!" << std::endl;
 	}
 	if (reactor_stability <= 25)
 	{
@@ -1579,14 +1635,6 @@ void deactivate()
 	if (state != REACTOR_STATE_IDLE)
 	{
 		heat = 0;
-		if (display_clear == 1) // clear screen
-		{
-			std::system("cls");
-		}
-		if (display_enable == 1) // display screen
-		{
-			display();
-		}
 	}
 	reaction_rate = 0;
 	reactor_stability = 0;
@@ -1594,7 +1642,7 @@ void deactivate()
 	upseconds = ((uptime % 60) % 60);
 	upminutes = ((uptime - upseconds)/60) % 60;
 	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
-	start_pause = 1; // pause annoying flashing
+	// pause annoying flashing
 	return;
 }
 
