@@ -316,6 +316,7 @@ float rod_integ_meltdown_data;
 bool rods_exploded_alarm;
 bool meltdown_real_alarm;
 bool melted_down_alarm;
+bool papause = 0;
 
 int main()
 {
@@ -336,11 +337,11 @@ int main()
 		
 		commandio(); // commands!
 		
-		if (skip == 0) // default loop
+		if (skip == 0 && papause == 0) // default loop
 		{
 			process(); // process
 			
-			if(!start_pause)
+			if(start_pause == 0) //stops displaying at start so it doesn't flash
 			{
 				if (dopoll) // get data
 				{
@@ -350,26 +351,24 @@ int main()
 				{
 					std::system("cls");
 				}
+				
 				if (display_enable == 1) // display screen
 				{
 					display();
-				}
-			} else if (state == REACTOR_STATE_RUNNING)
-			{
-				start_pause = 1;
-			}
-			else // return display and pause if meltdown about to happen
-			{
-				if((heat >= reactor_temperature_meltdown))
+				}else // return display and pause if meltdown about to happen
 				{
-					display_enable = 1;
-					display_clear = 1;
-					loop = 1;
-					std::system("cls");
-					std::cout <<"MELTDOWN NEXT PROCESS!!!"<< std::endl << std::endl;
-					display();
+					if((heat >= reactor_temperature_meltdown))
+					{
+						display_enable = 1;
+						display_clear = 1;
+						loop = 1;
+						std::system("cls");
+						std::cout <<"MELTDOWN NEXT PROCESS!!!"<< std::endl << std::endl;
+						display();
+					}
 				}
 			}
+			
 			if(state >= REACTOR_STATE_RUNNING)
 			{
 				uptime += 2;
@@ -377,6 +376,11 @@ int main()
 				upminutes = ((uptime - upseconds)/60) % 60;
 				uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
 			}
+		}
+		
+		if(papause) // processing pause caused by starting reactor...  
+		{
+			papause = 0;
 		}
 		
 		while(skip == 1) // skip loop
@@ -1167,6 +1171,7 @@ void try_start()
 	{
 		return;
 	}
+	papause = 1;
 	fuel_check = 0;
 	for (int i = 1; i < 14; i++) //does not take n2 into ror for whatever reason :)
 	{
@@ -1182,7 +1187,7 @@ void try_start()
 		{
 			reaction_rate = 5;
 		}
-		start_pause = 0;
+		start_pause = 0; // re-enables display
 	}
 	else 
 	{
@@ -1574,6 +1579,14 @@ void deactivate()
 	if (state != REACTOR_STATE_IDLE)
 	{
 		heat = 0;
+		if (display_clear == 1) // clear screen
+		{
+			std::system("cls");
+		}
+		if (display_enable == 1) // display screen
+		{
+			display();
+		}
 	}
 	reaction_rate = 0;
 	reactor_stability = 0;
@@ -1581,6 +1594,7 @@ void deactivate()
 	upseconds = ((uptime % 60) % 60);
 	upminutes = ((uptime - upseconds)/60) % 60;
 	uphours = (((uptime - upseconds) / 60) - upminutes) / 60;
+	start_pause = 1; // pause annoying flashing
 	return;
 }
 
