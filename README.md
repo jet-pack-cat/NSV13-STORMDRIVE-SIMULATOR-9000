@@ -5,7 +5,8 @@ who knows.
 
 ![image](https://github.com/user-attachments/assets/41c81d90-98b8-459b-9e1b-4e1cc428e855)
 ![image](https://github.com/user-attachments/assets/0089c9d0-3ecf-417e-8c66-ccf6f30ab74d)
-
+![image](https://github.com/user-attachments/assets/081389b5-bd0f-4f73-b509-2fe25636a44f)
+NEW AWESOME TIMING SECTION
 
 ___
 ### PRESS ESC KEY TO OPEN THE COMMAND PROMPT! 
@@ -15,6 +16,8 @@ ___
 ### NUMPAD 5 TO CLEAR ALARMS
 
 ### NUMPAD 8 TO RESET SAMPLES
+
+### NUMPAD +- TO CHANGE SPEED BY 10ms (useful for syncing or something)
 
 "help: Displays this menu" (displays help menu)
 
