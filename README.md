@@ -19,6 +19,8 @@ ___
 
 ### NUMPAD +- TO CHANGE SPEED BY 10ms (useful for syncing or something)
 
+### NUMPAD 7 Toggles time syncing. (useful for not being syncing)
+
 "help: Displays this menu" (displays help menu)
 
 ### "go: ends initalization starts program" (displays the display and enables reactor processing! NEEDED TO START)
@@ -32,6 +34,8 @@ ___
 "rp: Rod insertion percent" (self explainatory)
 
 "fire: shoots level 3 pa blast" (basically turning the PA on for one blast at level 3)
+
+"sync: toggles time syncing" (the jump ahead when you pause or go too fast)
 
 "speed: sim speed" (Simulation speed, literally the time it takes between process ticks (and commands))
 
