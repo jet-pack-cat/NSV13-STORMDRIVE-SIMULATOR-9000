@@ -355,7 +355,7 @@ int main()
 		{
 			if (!sp)
 			{
-				spe = display_enable;
+				spc = display_clear;
 			}
 			if (!sp)
 			{
@@ -468,8 +468,8 @@ int main()
 		if (start_pause == 0 && display_enable)
 		{
 			auto diff = std::chrono::duration_cast<std::chrono::microseconds>(next_frame - clock::now()).count();
-			std::cout << "Target update speed: " << speed << " milliseconds" << std::endl;
-			std::cout << std::endl << "frames skipped: " << frames_skipped << std::endl;
+			std::cout << std::endl << "Target update speed: " << speed << " milliseconds" << std::endl;
+			std::cout << "frames skipped: " << frames_skipped << std::endl;
 			frames_skipped = 0;
 			std::cout << "sleeping: " << diff/1000.0 << " milliseconds" << std::endl;
 			end_time = clock::now();
@@ -658,7 +658,8 @@ int initalize()
 		<< "Welcome to the Stormdrive Simulator 9000" << std::endl
 		<< "This is designed to be an accurate stormdrive simulation." << std::endl
 		<< "But without the annoyances of atmospherics or crew" << std::endl;
-	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help, numpad 5 to clear alarms, numpad 8 to clear samples, numpad 9 to fire PA" << std::endl;
+	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help, numpad 5 to clear alarms," << std::endl 
+	<< "numpad 8 to clear samples, numpad 9 to fire PA, numpad -+ to change speed by 10ms" << std::endl;
 
 	while (GAMESTATE == INITALIZE)
 	{
