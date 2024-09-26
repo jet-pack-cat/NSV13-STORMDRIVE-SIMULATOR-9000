@@ -321,6 +321,8 @@ bool spc = 1;
 bool spe = 1;
 long int frames_skipped = 0;
 bool sp = 0;
+bool sync = 1;
+
 int main()
 {
 	if (initalize())
@@ -336,6 +338,10 @@ int main()
 	while (GAMESTATE == RUNNING)
 	{
 		next_frame += std::chrono::milliseconds(speed);
+		if(state < REACTOR_STATE_RUNNING || sync == 0)
+		{
+			next_frame = clock::now() + std::chrono::milliseconds(speed);
+		}
 		start_time = clock::now();
 		if((next_frame - clock::now()).count() <= 0)
 		{
@@ -364,11 +370,6 @@ int main()
 			display_clear = spc;
 			display_enable = spe;
 			sp = 0;
-		}
-		
-		if(state < REACTOR_STATE_RUNNING)
-		{
-			next_frame = clock::now() + std::chrono::milliseconds(speed);
 		}
 		
 		commandio(); // commands!
@@ -659,7 +660,8 @@ int initalize()
 		<< "This is designed to be an accurate stormdrive simulation." << std::endl
 		<< "But without the annoyances of atmospherics or crew" << std::endl;
 	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help, numpad 5 to clear alarms," << std::endl 
-	<< "numpad 8 to clear samples, numpad 9 to fire PA, numpad -+ to change speed by 10ms" << std::endl;
+	<< "numpad 8 to clear samples, numpad 9 to fire PA, numpad -+ to change speed by 10ms" << std::endl
+	<< "numpad 7 to toggle syncing" << std::endl;
 
 	while (GAMESTATE == INITALIZE)
 	{
@@ -678,11 +680,11 @@ void commandio()
 	{
 		return;
 	}
-	if(GetAsyncKeyState(VK_ADD) & 1)
+	if(GetAsyncKeyState(VK_ADD))
 	{
 		speed += 10;
 	}
-	if(GetAsyncKeyState(VK_SUBTRACT) & 1)
+	if(GetAsyncKeyState(VK_SUBTRACT))
 	{
 		speed -= 10;
 	}
@@ -748,6 +750,10 @@ void commandio()
 			powers[i] = 0;
 		}
 	}
+	if (GetAsyncKeyState(VK_NUMPAD7))
+	{
+		sync = !sync;
+	}
 	if (GetAsyncKeyState(VK_NUMPAD9)) // shoot pa
 	{
 		shoot();
@@ -765,6 +771,7 @@ void commandio()
 					<< std::endl << "go: ends initalization starts program"
 					<< std::endl << "stop: Ends Program"
 					<< std::endl << "------------------"
+					<< std::endl << "sync: toggles syncing time"
 					<< std::endl << "clearalarms: clears alarms"
 					<< std::endl << "fueledit: lets you edit fuel ratio"
 					<< std::endl << "rodedit: lets you edit control rods"
@@ -850,6 +857,13 @@ void commandio()
 				std::cout << std::endl << "starting" << std::endl;
 				loop = 0;
 				GAMESTATE = RUNNING;
+				return;
+			}
+			if (command == "sync")
+			{
+				std::cout << std::endl << "time sync toggled" << std::endl;
+				sync = !sync;
+				loop = 0;
 				return;
 			}
 			if (command == "fire")
