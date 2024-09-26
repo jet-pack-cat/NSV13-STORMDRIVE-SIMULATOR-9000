@@ -17,6 +17,8 @@ ___
 
 ### NUMPAD 8 TO RESET SAMPLES
 
+### NUMPAD +- TO CHANGE SPEED BY 10ms (useful for syncing or something)
+
 "help: Displays this menu" (displays help menu)
 
 ### "go: ends initalization starts program" (displays the display and enables reactor processing! NEEDED TO START)
