@@ -680,15 +680,15 @@ void commandio()
 	{
 		return;
 	}
-	if(GetAsyncKeyState(VK_ADD))
+	if(GetAsyncKeyState(VK_ADD) & 0x0001)
 	{
 		speed += 10;
 	}
-	if(GetAsyncKeyState(VK_SUBTRACT))
+	if(GetAsyncKeyState(VK_SUBTRACT) & 0x0001)
 	{
 		speed -= 10;
 	}
-	if (GetAsyncKeyState(VK_NUMPAD5)) // clear alarms
+	if (GetAsyncKeyState(VK_NUMPAD5) & 0x0001) // clear alarms
 	{
 		start_alarm = 0;
 		fuel_overload_alarm = 0;
@@ -728,7 +728,7 @@ void commandio()
 		meltdown_real_alarm = 0;
 		melted_down_alarm = 0;
 	}
-	if (GetAsyncKeyState(VK_NUMPAD8)) // clear polls
+	if (GetAsyncKeyState(VK_NUMPAD8) & 0x0001) // clear polls
 	{
 		rod_lifetime = -1;
 		rod_lifetime_max = -1;
@@ -750,15 +750,15 @@ void commandio()
 			powers[i] = 0;
 		}
 	}
-	if (GetAsyncKeyState(VK_NUMPAD7))
+	if (GetAsyncKeyState(VK_NUMPAD7) & 0x0001)
 	{
 		sync = !sync;
 	}
-	if (GetAsyncKeyState(VK_NUMPAD9)) // shoot pa
+	if (GetAsyncKeyState(VK_NUMPAD9) & 0x0001) // shoot pa
 	{
 		shoot();
 	}
-	if (GetAsyncKeyState(VK_ESCAPE) || (loop == 1))
+	if ((GetAsyncKeyState(VK_ESCAPE) & 0x0001) || (loop == 1))
 	{
 		loop = 1;
 		while (loop == 1)
@@ -1243,7 +1243,6 @@ void try_start()
 	{
 		return;
 	}
-	papause = 1;
 	fuel_check = 0;
 	for (int i = 1; i < 14; i++) //does not take n2 into ror for whatever reason :)
 	{
@@ -1259,12 +1258,12 @@ void try_start()
 		{
 			reaction_rate = 5;
 		}
+		papause = 1;
 		start_pause = 0; // re-enables display
 	}
 	else 
 	{
-		start_alarm = 1;
-		start_alarm_data = fuel_check;
+		std::cout << "Fuel check failed: " << fuel_check << std::endl;
 	}
 	return;
 }
