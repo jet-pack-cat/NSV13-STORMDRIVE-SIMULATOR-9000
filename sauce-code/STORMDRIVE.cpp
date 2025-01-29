@@ -70,6 +70,18 @@
 //Hella public variables and functions, is this bad? yes, do I care? no.
 
 //gas storage arrays, lets you modify gas properties, could be an object but why bother.
+float INIT[7][14] = 
+{
+	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //MOLCOUNT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //ROR
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //IPM
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //COOLING
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //RADIATION
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 }, //REINFORCEMENT
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0 } //DEG PROTECTION
+};
+
 float air1[7][14] = 
 {
 	//N2, O2, CO2, PLASMA, TRITIUM, NITROUS, PLUOXIUM, HYPERNOB, STIMULUM, BZ, CONSTRICTED PLASMA, H20, NUCLIUM, NITRYL
@@ -322,6 +334,10 @@ bool spe = 1;
 long int frames_skipped = 0;
 bool sp = 0;
 bool sync = 1;
+std::ofstream datafile;
+void write_data();
+float entropy = 5; //god is here
+bool write_enable = false;
 
 int main()
 {
@@ -386,6 +402,10 @@ int main()
 				{
 					getavg();
 				}
+				if (write_enable)
+				{
+					write_data(); // write data for spreadsheets
+				}
 				if (display_clear == 1) // clear screen
 				{
 					std::system("cls");
@@ -430,7 +450,10 @@ int main()
 			{
 				getavg();
 			}
-			
+			if(write_enable)
+			{
+				write_data();
+			}
 			if (GetForegroundWindow() == windowhandle) // get time remaining
 			{
 				if (GetAsyncKeyState(VK_ESCAPE))
@@ -509,12 +532,19 @@ int initalize()
 	srand(time(NULL)); // seed us
 	
 	//GET CONFIG
+	
 
+	datafile.open("datafile.txt");
+	//error checking
+	if(datafile.fail())
+	{
+		std::cerr << "NO DATA FILE!" << std::endl;
+		datafile.close();
+		GAMESTATE = STOP;
+		return 1;
+	}
 	std::ifstream sdconfig;
 	sdconfig.open("sdconfig.txt");
-
-	//error checking
-
 	if (sdconfig.fail())
 	{
 		std::cerr << "NO CONFIG FILE!" << std::endl;
@@ -553,8 +583,9 @@ int initalize()
 		{
 			for (int k = 0; k < 14; k++) //Which gas type
 			{
-				sdconfig >> air1[i][k];
-				reaction_chamber_gases[i][k] = air1[i][k];
+				sdconfig >> INIT[i][k];
+				reaction_chamber_gases[i][k] = INIT[i][k];
+				air1[i][k] = INIT[i][k];
 			}
 		}
 
@@ -566,7 +597,8 @@ int initalize()
 		t = molcount / t;
 		for (int i = 0; i < 14; i++)
 		{
-			air1[MOL][i] = ratio[i] * (t);
+			INIT[MOL][i] = ratio[i] * (t);
+			air1[MOL][i] = INIT[MOL][i];
 		}
 
 		for (int i = 0; i < 5; i++) //rod integrity
@@ -590,6 +622,51 @@ int initalize()
 		}
 
 		std::cout << "RATIO" << std::endl;
+
+		for (int i = 0; i < 7; i++)
+		{
+			for (int k = 0; k < 14; k++)
+			{
+				std::cout << INIT[i][k] << " ";
+			}
+			switch (i)
+			{
+			case 0:
+				std::cout << "MOLS";
+				break;
+			case 1:
+				std::cout << "ROR";
+				break;
+			case 2:
+				std::cout << "IPM";
+				break;
+			case 3:
+				std::cout << "COOLING";
+				break;
+			case 4:
+				std::cout << "RADIATION";
+				break;
+			case 5:
+				std::cout << "REINFORCEMENT";
+				break;
+			case 6:
+				std::cout << "DEG_PROTECTION";
+				break;
+			}
+			std::cout << std::endl;
+		}
+
+		//randomize
+		for (int k = 0; k < 14; k++) //gas type
+		{
+			float rr = (((float)(rand() % 11 + 95))/100);
+			for (int i = 1; i < 7; i++) //Which gas property
+			{
+				air1[i][k] = INIT[i][k] * rr;
+				reaction_chamber_gases[i][k] = INIT[i][k] * rr;
+			}
+		}
+		std::cout << "RANDOMIZED VALUES" << std::endl;
 
 		for (int i = 0; i < 7; i++)
 		{
@@ -623,6 +700,7 @@ int initalize()
 			}
 			std::cout << std::endl;
 		}
+
 
 		for (int i = 0; i < 5; i++)
 		{
@@ -661,7 +739,9 @@ int initalize()
 		<< "But without the annoyances of atmospherics or crew" << std::endl;
 	std::cout << "PRESS ESCAPE TO INPUT COMMANDS, command help for help, numpad 5 to clear alarms," << std::endl 
 	<< "numpad 8 to clear samples, numpad 9 to fire PA, numpad -+ to change speed by 10ms" << std::endl
-	<< "numpad 7 to toggle syncing" << std::endl;
+	<< "numpad 7 to toggle syncing" << std::endl
+	<< "numpad 1 to randomize gas properties, numpad 2 to minimize gas properties" << std::endl;
+
 
 	while (GAMESTATE == INITALIZE)
 	{
@@ -758,6 +838,32 @@ void commandio()
 	{
 		shoot();
 	}
+	if (GetAsyncKeyState(VK_NUMPAD1) & 0x0001)
+	{
+		int range = entropy * 2 + 1;
+		float offset = 100 - entropy;
+		for (int k = 0; k < 14; k++) //gas type
+		{
+			float rr = (((float)(rand() % range + offset))/100);
+			for (int i = 1; i < 7; i++) //Which gas property
+			{
+				air1[i][k] = INIT[i][k] * rr;
+				reaction_chamber_gases[i][k] = INIT[i][k] * rr;
+			}
+		}
+	}
+	if (GetAsyncKeyState(VK_NUMPAD2) & 0x0001)
+	{
+		float minimise = (100 - entropy)/100;
+		for (int k = 0; k < 14; k++) //gas type
+		{
+			for (int i = 1; i < 7; i++) //Which gas property
+			{
+				air1[i][k] = INIT[i][k] * minimise;
+				reaction_chamber_gases[i][k] = INIT[i][k] * minimise;
+			}
+		}
+	}
 	if ((GetAsyncKeyState(VK_ESCAPE) & 0x0001) || (loop == 1))
 	{
 		loop = 1;
@@ -771,6 +877,7 @@ void commandio()
 					<< std::endl << "go: ends initalization starts program"
 					<< std::endl << "stop: Ends Program"
 					<< std::endl << "------------------"
+					<< std::endl << "datawrite: toggles datafile writing (DO NOT USE WHEN SKIPPING LARGE TIMES, WILL FILL UP MEMORY)"
 					<< std::endl << "sync: toggles syncing time"
 					<< std::endl << "clearalarms: clears alarms"
 					<< std::endl << "fueledit: lets you edit fuel ratio"
@@ -782,12 +889,73 @@ void commandio()
 					<< std::endl << "skip: skip forward in time"
 					<< std::endl << "display: toggles display, disabling increases speed"
 					<< std::endl << "displayclear: toggles display clearing, disabling increases speed at the cost of your vision"
-					<< std::endl << "polledit: setup averages polling or reset" << std::endl;
+					<< std::endl << "polledit: setup averages polling or reset" 
+					<< std::endl << "entropy: set entropy value" << std::endl;
+				 std::cout << "numpad 5 to clear alarms" 
+					<< std::endl << "numpad 8 to clear samples" 
+					<< std::endl << "numpad 9 to fire PA" 
+					<< std::endl << "numpad -+ to change speed by 10ms" 
+					<< std::endl << "numpad 7 to toggle syncing" 
+					<< std::endl << "numpad 1 to randomize gas properties" 
+					<< std::endl << "numpad 2 to minimize gas properties" << std::endl;
 			}
 			if (command == "display")
 			{
 				std::cout << std::endl << "display toggled" << std::endl;
 				display_enable = !display_enable;
+				loop = 0;
+				return;
+			}
+			if (command == "datawrite")
+			{
+				if (write_enable == true)
+				{
+					std::cout << std::endl << "write disabled" << std::endl;
+					write_enable = false;
+				} else
+				{
+					std::cout << std::endl << "write enabled" << std::endl;
+					write_enable = true;
+				}
+				loop = 0;
+				return;
+			}
+			if (command == "minimize")
+			{
+				float minimise = (100 - entropy)/100;
+				for (int k = 0; k < 14; k++) //gas type
+				{
+					for (int i = 1; i < 7; i++) //Which gas property
+					{
+						air1[i][k] = INIT[i][k] * minimise;
+						reaction_chamber_gases[i][k] = INIT[i][k] * minimise;
+					}
+				}
+				loop = 0;
+				return;
+			}
+			if (command == "randomize")
+			{
+				int range = entropy * 2 + 1;
+				float offset = 100 - entropy;
+				for (int k = 0; k < 14; k++) //gas type
+				{
+					float rr = (((float)(rand() % range + offset))/100);
+					for (int i = 1; i < 7; i++) //Which gas property
+					{
+						air1[i][k] = INIT[i][k] * rr;
+						reaction_chamber_gases[i][k] = INIT[i][k] * rr;
+					}
+				}
+				loop = 0;
+				return;
+
+			}
+			if (command == "entropy")
+			{
+				std::cout << std::endl << "entropy: ";
+				std::cin >> entropy;
+				std::cout << std::endl;
 				loop = 0;
 				return;
 			}
@@ -1244,7 +1412,7 @@ void try_start()
 		return;
 	}
 	fuel_check = 0;
-	for (int i = 1; i < 14; i++) //does not take n2 into ror for whatever reason :)
+	for (int i = 1; i < 14; i++) //does not take n2 inhttps://www.byond.com/docs/guide/chap16.htmlto ror for whatever reason :)
 	{
 		fuel_check += ((air1[ROR][i]) * (air1[MOL][i]));
 	}
@@ -1471,9 +1639,13 @@ void handle_control_rod_efficiency()
 			control_rods_l++;
 		}
 	}
-	if (control_rods_l > 0) //mimics runtime error lmao
+	if (control_rods_l > 0) //neat it got fixed
 	{
-	control_rod_modifier = control_rod_effectiveness_total / control_rods_l;
+		control_rod_modifier = control_rod_effectiveness_total / control_rods_l;
+	}
+	else
+	{
+		control_rod_modifier = 1;
 	}
 	return;
 }
@@ -1706,6 +1878,7 @@ void display()
 	<< std::endl
 	<< "Radiation: " << radiation << std::endl
 	<< std::endl
+	<< "ENTROPY (scary): " << entropy << "%" << std::endl
 	<< "Control Rod Modifier: " << control_rod_modifier << std::endl
 	<< "Input Power Modifier: " << input_power_modifier << std::endl
 	<< "Cooling Power Modifier: " << cooling_power_modifier << std::endl
@@ -1716,6 +1889,42 @@ void display()
 	<< "Control Rod Degradation Modifer: " << control_rod_degradation_modifier << std::endl
 	<< "Nucleium Power Reduction: " << nucleium_power_reduction << std::endl
 	<< std::endl;
+	std::cout << "RANDOMIZED VALUES" << std::endl;
+
+	for (int i = 0; i < 7; i++)
+	{
+		for (int k = 0; k < 14; k++)
+		{
+			std::cout << air1[i][k] << " ";
+		}
+		switch (i)
+		{
+			case 0:
+				std::cout << "MOLS";
+				break;
+			case 1:
+				std::cout << "ROR";
+				break;
+			case 2:
+				std::cout << "IPM";
+				break;
+			case 3:
+				std::cout << "COOLING";
+				break;
+			case 4:
+				std::cout << "RADIATION";
+				break;
+			case 5:
+				std::cout << "REINFORCEMENT";
+				break;
+			case 6:
+				std::cout << "DEG_PROTECTION";
+				break;
+		}
+		std::cout << std::endl;
+	}
+
+
 	std::cout << "ALARMS:" << std::endl << std::endl;
 	
 	std::cout << "Critical Alarms: " << std::endl; // all of these will cause a meltdown eventually
@@ -2064,4 +2273,16 @@ void getavg()
 		temperature_delta_min = (heat_gain - (cooling_power * cooling_power_modifier));
 	}
 	return;
+}
+
+void write_data()
+{
+	datafile 	
+	<< uptime 
+	<< " "
+	<< heat 
+	<< " "
+	<< last_power_produced / 1000
+	<< std::endl;
+	return;	
 }
