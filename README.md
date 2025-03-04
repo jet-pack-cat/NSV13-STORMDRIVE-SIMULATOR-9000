@@ -1,6 +1,9 @@
 ### Funny Simulation Software for the Stormdrive 1000
 ### This is my first time actually coding.
 ___
+### proper notes on the stormdrives behavior:
+https://docs.google.com/presentation/d/1Vwqui52a7QQDRYJtJlrt-Xga47aQVv3JF5s4t6lMKVI/edit?usp=sharing
+___
 Maybe might explode?
 who knows.
 ![goofy](https://github.com/user-attachments/assets/a7f7f0a0-e982-4805-b10c-3b935c4d7305)
