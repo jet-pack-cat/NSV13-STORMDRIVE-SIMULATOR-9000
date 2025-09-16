@@ -1,3 +1,5 @@
+# This project is soon to be deprecated, and will no longer receive updates. A new atmospherics simulator is planned to take its place in the far future (soon™), once I'm confident with my programming (Im trying to actually trying study C for real).
+___
 ### Funny Simulation Software for the Stormdrive 1000
 ### This is my first time actually coding.
 ___
